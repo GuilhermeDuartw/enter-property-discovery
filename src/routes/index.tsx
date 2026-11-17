@@ -815,6 +815,7 @@ function OpeningIntro({ assetsReady, onFinish }: { assetsReady: boolean; onFinis
         .to(".bk-opening__trail", { clipPath: "polygon(0% 0%, 100% 0%, 100% 0%, 0% 0%)", duration: 1.12, ease: "expo.inOut" }, 2.12 * k)
         .to(".bk-opening__footer", { opacity: 0, y: 12, duration: 0.25 }, 2 * k);
       gsap.delayedCall(4.8, done);
+      element.classList.add("is-playing");
     }, element);
     return () => ctx.revert();
   }, []);
