@@ -31,3 +31,4 @@ use the editor.
 
 ## Project rules
 - The home page is an imported website clone: keep its markup, menu data and shop state (filters, cart, popups) in `src/routes/index.tsx`, and its source styles in `src/styles/site.css` (scoped under `.bk-experience`, so popups must render inside that wrapper to get the site colors).
+- Home page motion (opening screen, entrance, scroll reveals, button hover) is ported from the original site with GSAP + ScrollTrigger inside `src/routes/index.tsx`; keep animated elements free of inline transform/opacity so GSAP and the CSS hover rules control them.

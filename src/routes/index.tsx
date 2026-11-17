@@ -1,6 +1,8 @@
-import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type RefObject } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import capturedCSS from "../styles/site.css?raw";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -115,21 +117,53 @@ function Index() {
     return () => window.removeEventListener("keydown", onKey);
   });
 
+  const rootRef = useRef<HTMLDivElement>(null);
+  const [intro, setIntro] = useState(true);
+  const [motionReady, setMotionReady] = useState(false);
+  const assetsReady = useAssetsReady();
+  useEffect(() => {
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    let show = !reduced;
+    try {
+      if (show && new URLSearchParams(window.location.search).get("abertura") !== "1") show = sessionStorage.getItem(INTRO_KEY) !== "seen";
+    } catch {
+      show = false;
+    }
+    if (!show) setIntro(false);
+    setMotionReady(!reduced);
+  }, []);
+  useEffect(() => {
+    if (!intro) return;
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previous;
+    };
+  }, [intro]);
+  const finishIntro = () => {
+    try {
+      sessionStorage.setItem(INTRO_KEY, "seen");
+    } catch {}
+    setIntro(false);
+  };
+  useSiteMotion(rootRef, motionReady && !intro);
+
   const detail = dialog?.type === "dish" ? dishById(dialog.id) : null;
   const total = basket.reduce((sum, line) => sum + sizeOf(dishById(line.dishId), line.size).price * line.qty, 0);
   return (
     <>
       <style>{capturedCSS}</style>
       <div id="root">
-        <div className={"bk-experience bk-motion-enabled isolate [&]:relative [overflow:clip] [width:100%]"}>
+        <div ref={rootRef} className={"bk-experience bk-motion-enabled isolate [&]:relative [overflow:clip] [width:100%]"}>
           <ScrollProgress />
+          {intro && <OpeningIntro assetsReady={assetsReady} onFinish={finishIntro} />}
           <a className={"bk-skip p-[12px] no-underline top-[8px] [z-index:150] [&:focus-visible]:[outline:3px_solid_var(--bk-script)] [&:focus-visible]:[outline-offset:5px]"} href="#cardapio">Ir para o cardápio</a>
           <ImportedHeader shop={shop} menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
           <main>
             <ImportedSectionBrownieBomFeitoComcalma />
             <ImportedSectionTemCoisaBoasaindoDo shop={shop} />
             <ImportedSectionCacauNoPontoPressa shop={shop} />
-            <div className={"bk-ticker [&]:relative [z-index:2] [translate:none] [rotate:none] [scale:none]"} style={{ transform: "translate(0px, 12px) rotate(-2.2deg) scale(1.02, 1.02)" }} aria-hidden="true">
+            <div className={"bk-ticker [&]:relative [z-index:2] [translate:none] [rotate:none] [scale:none]"} aria-hidden="true">
               <div className="bk-marquee [overflow:hidden]">
                 <div className="bk-marquee__group items-center [flex-shrink:0] [gap:var(--bk-gap)] [@media(prefers-reduced-motion:reduce)]:flex-wrap">
                   <svg className="[flex-shrink:0] [stroke-width:1.2px]" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -359,7 +393,7 @@ function ChocolateScene() {
 
 function ImportedHeader({ shop, menuOpen, setMenuOpen }: { shop: Shop; menuOpen: boolean; setMenuOpen: (open: boolean) => void }) {
   return (
-    <header className={"bk-header items-center justify-between [&]:absolute [left:0px] [z-index:80] [translate:none] [rotate:none] [scale:none]"} style={{ opacity: "1", transform: "translate(0px, 0px)" }}>
+    <header className={"bk-header items-center justify-between [&]:absolute [left:0px] [z-index:80] [translate:none] [rotate:none] [scale:none]"}>
       <a className={"bk-brand bk-brand--light items-center gap-[7px] no-underline [flex-shrink:0] [&:focus-visible]:[outline:3px_solid_var(--bk-script)] [&:focus-visible]:[outline-offset:5px]"} aria-label="Doce Forno — início" href="#inicio">
         <svg className="self-start mt-[4px] [flex-shrink:0] [@media(max-width:680px)]:w-[28px]" width="26" height="26" viewBox="0 0 24 24" fill="none" aria-hidden="true">
           <path d="M12 2.5v19M3.8 7.2l16.4 9.6M20.2 7.2L3.8 16.8" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
@@ -404,7 +438,7 @@ function ImportedHeader({ shop, menuOpen, setMenuOpen }: { shop: Shop; menuOpen:
 function ImportedSectionBrownieBomFeitoComcalma() {
   return (
     <section className={"bk-hero bk-in-view [&]:relative [overflow:hidden] [scroll-margin-top:85px] [width:100%]"} id="inicio" aria-labelledby="bk-title">
-      <picture className={"bk-hero__image [&]:absolute [translate:none] [rotate:none] [scale:none]"} style={{ transform: "translate(0px, 0px)" }} data-site-import-responsive="30">
+      <picture className={"bk-hero__image [&]:absolute [translate:none] [rotate:none] [scale:none]"} data-site-import-responsive="30">
         <img className="object-cover [width:100%] [@media(max-width:680px)]:object-cover" alt="Pilha de brownies com ganache brilhante e flor de sal sobre mesa de madeira escura" width="1672" height="941" fetchPriority="high" src="/site-assets/6c6b089f6f2e8732.webp" />
       </picture>
       <div className={"bk-hero__shade pointer-events-none [&]:absolute [inset:0px]"} />
@@ -413,31 +447,31 @@ function ImportedSectionBrownieBomFeitoComcalma() {
         <i className={"[&]:absolute w-[2px] [box-shadow:rgba(247,185,110,0.5)_0px_0px_10px]"} />
         <i className={"[&]:absolute w-[2px] [box-shadow:rgba(247,185,110,0.5)_0px_0px_10px]"} />
       </div>
-      <div className={"bk-hero__copy [&]:relative [z-index:2] [translate:none] [rotate:none] [scale:none]"} style={{ transform: "translate(0px, 0px)" }} data-site-import-responsive="37">
-        <p className="bk-eyebrow bk-hero__eyebrow [translate:none] [rotate:none] [scale:none]" style={{ transform: "translate(0px, 0px)", opacity: "1" }}>CACAU NOBRE. FORNO ACESO. FATIA GENEROSA.</p>
+      <div className={"bk-hero__copy [&]:relative [z-index:2] [translate:none] [rotate:none] [scale:none]"} data-site-import-responsive="37">
+        <p className="bk-eyebrow bk-hero__eyebrow [translate:none] [rotate:none] [scale:none]">CACAU NOBRE. FORNO ACESO. FATIA GENEROSA.</p>
         <h1 id="bk-title">
           <span className="bk-hero__line [overflow:hidden]">
-            <span className="[translate:none] [rotate:none] [scale:none]" style={{ transform: "translate(0px, 0px)" }}>Brownie bom.</span>
+            <span className="[translate:none] [rotate:none] [scale:none]">Brownie bom.</span>
           </span>
           <span className="bk-hero__line [overflow:hidden]">
-            <span className="[translate:none] [rotate:none] [scale:none]" style={{ transform: "translate(0px, 0px)" }}>Feito com</span>
+            <span className="[translate:none] [rotate:none] [scale:none]">Feito com</span>
           </span>
           <span className={"bk-hero__line bk-hero__line--script [&]:relative [letter-spacing:-0.055em] [overflow:visible]"}>
-            <span className={"[&]:relative [translate:none] [rotate:none] [scale:none]"} style={{ transform: "rotate(-7deg)" }}>calma.<svg className={"fill-none left-[10%] [&]:absolute w-[105%] [flex-shrink:0] [stroke:var(--bk-caramel)] [stroke-linecap:round] [stroke-width:3px]"} viewBox="0 0 240 45" aria-hidden="true"><path className="[stroke-dashoffset:0px] [stroke-dasharray:401.376]" d="M8 25Q120 5 230 18M26 36Q130 23 204 27" /></svg></span>
+            <span className={"[&]:relative [translate:none] [rotate:none] [scale:none]"}>calma.<svg className={"fill-none left-[10%] [&]:absolute w-[105%] [flex-shrink:0] [stroke:var(--bk-caramel)] [stroke-linecap:round] [stroke-width:3px]"} viewBox="0 0 240 45" aria-hidden="true"><path className="[stroke-dashoffset:0px] [stroke-dasharray:401.376]" d="M8 25Q120 5 230 18M26 36Q130 23 204 27" /></svg></span>
           </span>
         </h1>
-        <p className="bk-hero__description [translate:none] [rotate:none] [scale:none]" style={{ transform: "translate(0px, 0px)", opacity: "1" }}>Casquinha fina, coração úmido e cacau de verdade. Do primeiro pedaço ao último café.</p>
-        <div className="bk-hero__actions items-center [translate:none] [rotate:none] [scale:none]" style={{ transform: "translate(0px, 0px)", opacity: "1" }}>
+        <p className="bk-hero__description [translate:none] [rotate:none] [scale:none]">Casquinha fina, coração úmido e cacau de verdade. Do primeiro pedaço ao último café.</p>
+        <div className="bk-hero__actions items-center [translate:none] [rotate:none] [scale:none]">
           <a className={"bk-button items-center isolate justify-center no-underline whitespace-nowrap [overflow:hidden] [&:focus-visible]:[outline:3px_solid_var(--bk-script)] [&:focus-visible]:[outline-offset:5px] [&:hover]:[box-shadow:rgba(158,102,46,0.22)_0px_7px_25px]"} href="#cardapio">Ver o cardápio <svg className="[flex-shrink:0]" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12h14" /><path d="m12 5 7 7-7 7" /></svg></a>
           <a className={"bk-text-link items-center gap-[11px] min-h-[44px] no-underline [&:focus-visible]:[outline:3px_solid_var(--bk-script)] [&:focus-visible]:[outline-offset:5px]"} href="#casa">Conheça a casa <svg className="[flex-shrink:0]" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M7 7h10v10" /><path d="M7 17 17 7" /></svg></a>
         </div>
-        <div className="bk-hero__promises mt-[39px] [translate:none] [rotate:none] [scale:none]" style={{ transform: "translate(0px, 0px)", opacity: "1" }} data-site-import-responsive="58">
+        <div className="bk-hero__promises mt-[39px] [translate:none] [rotate:none] [scale:none]" data-site-import-responsive="58">
           <span><svg className="mb-[8px] w-[25px] [flex-shrink:0] [stroke-width:1.1px]" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z" /></svg>Cacau 70%<br />amargo na medida</span>
           <span><svg className="mb-[8px] w-[25px] [flex-shrink:0] [stroke-width:1.1px]" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M17 21a1 1 0 0 0 1-1v-5.35c0-.457.316-.844.727-1.041a4 4 0 0 0-2.134-7.589 5 5 0 0 0-9.186 0 4 4 0 0 0-2.134 7.588c.411.198.727.585.727 1.041V20a1 1 0 0 0 1 1Z" /><path d="M6 17h12" /></svg>Assado hoje<br />em pequenas fornadas</span>
           <span><svg className="mb-[8px] w-[25px] [flex-shrink:0] [stroke-width:1.1px]" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M2 9.5a5.5 5.5 0 0 1 9.591-3.676.56.56 0 0 0 .818 0A5.49 5.49 0 0 1 22 9.5c0 2.29-1.5 4-3 5.5l-5.492 5.313a2 2 0 0 1-3 .019L5 15c-1.5-1.5-3-3.2-3-5.5" /></svg>Embalado<br />para presentear</span>
         </div>
       </div>
-      <div className={"bk-hero__note [&]:absolute [z-index:2] [translate:none] [rotate:none] [scale:none]"} style={{ opacity: "1", transform: "rotate(-10.0001deg)" }} aria-hidden="true" data-site-import-responsive="72">É de comer<br />com os olhos.<svg className="fill-none w-[52px] [flex-shrink:0] [margin:7px_0px_0px_45px] [stroke:currentcolor] [stroke-linecap:round] [stroke-linejoin:round] [stroke-width:2px]" viewBox="0 0 80 95"><path d="M12 4Q2 70 64 77M46 64L66 78L47 91" /></svg></div>
+      <div className={"bk-hero__note [&]:absolute [z-index:2] [translate:none] [rotate:none] [scale:none]"} aria-hidden="true" data-site-import-responsive="72">É de comer<br />com os olhos.<svg className="fill-none w-[52px] [flex-shrink:0] [margin:7px_0px_0px_45px] [stroke:currentcolor] [stroke-linecap:round] [stroke-linejoin:round] [stroke-width:2px]" viewBox="0 0 80 95"><path d="M12 4Q2 70 64 77M46 64L66 78L47 91" /></svg></div>
       <a className={"bk-hero__scroll items-center gap-[12px] no-underline [letter-spacing:0.03em] [z-index:2] [&:focus-visible]:[outline:3px_solid_var(--bk-script)] [&:focus-visible]:[outline-offset:5px] [@media(max-width:680px)]:whitespace-nowrap [@media(max-width:680px)]:[backdrop-filter:blur(6px)] [@media(max-width:680px)]:[padding:7px_13px]"} href="#cardapio">
         <span>O próximo pedaço está aqui</span>
         <svg className="[flex-shrink:0]" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -453,26 +487,39 @@ function ImportedSectionBrownieBomFeitoComcalma() {
 function ImportedSectionTemCoisaBoasaindoDo({ shop }: { shop: Shop }) {
   const [filter, setFilter] = useState<"Tudo" | Category>("Tudo");
   const visible = DISHES.filter((dish) => filter === "Tudo" || dish.category === filter);
+  const tabs = useRef<Partial<Record<string, HTMLButtonElement | null>>>({});
+  const [pill, setPill] = useState({ left: 0, top: 0, width: 0, height: 0 });
+  useLayoutEffect(() => {
+    const measure = () => {
+      const tab = tabs.current[filter];
+      if (tab) setPill({ left: tab.offsetLeft, top: tab.offsetTop, width: tab.offsetWidth, height: tab.offsetHeight });
+    };
+    measure();
+    window.addEventListener("resize", measure);
+    document.fonts?.ready.then(measure);
+    return () => window.removeEventListener("resize", measure);
+  }, [filter]);
   return (
     <section className="bk-menu-section bk-section [scroll-margin-top:85px]" id="cardapio" aria-labelledby="bk-menu-heading">
       <div className="bk-menu-heading items-end gap-[30px] justify-between">
-        <div className="[translate:none] [rotate:none] [scale:none] [clip-path:none]" style={{ transform: "translate(0px, 0px)" }}>
+        <div className="[translate:none] [rotate:none] [scale:none]">
           <span className="bk-eyebrow">ESCOLHA PELO OLHO. VOLTE PELO SABOR.</span>
           <h2 id="bk-menu-heading">Tem coisa boa<br /><em className="[letter-spacing:-0.035em]">saindo do forno.</em></h2>
         </div>
-        <div className="bk-menu-heading__aside mb-[7px] [@media(max-width:680px)]:mt-[25px] [translate:none] [rotate:none] [scale:none]" style={{ opacity: "1", transform: "translate(0px, 0px)" }}>
+        <div className="bk-menu-heading__aside mb-[7px] [@media(max-width:680px)]:mt-[25px] [translate:none] [rotate:none] [scale:none]">
           <p>Um brownie de casquinha, um bolo de camadas generosas,<br />uma caixa para dividir. Qual é a sua vontade?</p>
           <span className="bk-demo-note">Produção artesanal · valores por unidade</span>
         </div>
       </div>
       <div className={"bk-categories [&]:relative [@media(max-width:680px)]:whitespace-nowrap [@media(max-width:680px)]:[overflow-x:auto] [@media(max-width:680px)]:[scrollbar-width:none]"} role="tablist" aria-label="Categorias do cardápio">
+        <span className="bk-category-pill" aria-hidden="true" style={{ top: pill.top, left: 0, width: pill.width, height: pill.height, transform: `translateX(${pill.left}px)`, opacity: pill.width ? 1 : 0 }} />
         {CATEGORIES.map((category) => (
-          <button key={category} className={`${filter === category ? "is-active " : ""}isolate [&]:relative ${FOCUS} [translate:none] [rotate:none] [scale:none]`} style={{ opacity: "1", transform: "translate(0px, 0px)" }} role="tab" aria-selected={filter === category} onClick={() => setFilter(category)}>{filter === category && <span className={"bk-category-pill [&]:absolute [inset:0px] [z-index:-1]"} style={{ opacity: "1" }} />}{category}</button>
+          <button key={category} ref={(node) => { tabs.current[category] = node; }} className={`${filter === category ? "is-active " : ""}isolate [&]:relative ${FOCUS} [translate:none] [rotate:none] [scale:none]`} role="tab" aria-selected={filter === category} onClick={() => setFilter(category)}>{category}</button>
         ))}
       </div>
       <div className="bk-menu-grid items-stretch [@media(max-width:680px)]:[overflow:auto_hidden] [@media(max-width:680px)]:[scroll-padding-inline:23px] [@media(max-width:680px)]:[scroll-snap-type:x_mandatory] [@media(max-width:680px)]:[scrollbar-color:rgb(189,155,98)_transparent] [@media(max-width:680px)]:[scrollbar-width:thin]">
         {visible.map((dish) => (
-          <article key={dish.id} className={"bk-dish flex-col [&]:relative [overflow:hidden] [@media(max-width:680px)]:[scroll-snap-align:start]"} style={{ opacity: "1", transform: "none" }}>
+          <article key={dish.id} className={"bk-dish flex-col [&]:relative [overflow:hidden] [@media(max-width:680px)]:[scroll-snap-align:start]"}>
             <button className={`bk-dish__image [overflow:hidden] ${FOCUS}`} aria-label={`Ver ${dish.name}`} data-pending={dish.image ? undefined : "true"} onClick={() => shop.openDish(dish.id)}>
               {dish.image ? (
                 <img className="object-cover [width:100%] [object-position:center_center]" alt={dish.name} loading="lazy" decoding="async" src={dish.image} />
@@ -487,7 +534,7 @@ function ImportedSectionTemCoisaBoasaindoDo({ shop }: { shop: Shop }) {
                 </svg>
               </span>
             </button>
-            <div className="bk-dish__body flex-1 flex-col [translate:none] [rotate:none] [scale:none]" style={{ opacity: "1", transform: "translate(0px, 0px)" }}>
+            <div className="bk-dish__body flex-1 flex-col [translate:none] [rotate:none] [scale:none]">
               <h3>
                 <button className={`text-left ${FOCUS}`} onClick={() => shop.openDish(dish.id)}>{dish.name}</button>
               </h3>
@@ -521,14 +568,14 @@ function ImportedSectionCacauNoPontoPressa({ shop }: { shop: Shop }) {
   return (
     <section className="bk-feature [overflow:hidden] [scroll-margin-top:85px] [@media(max-width:680px)]:flex-col" id="cozinha" aria-labelledby="bk-feature-title">
       <div className={"bk-feature__copy [&]:relative [z-index:2] [@media(max-width:680px)]:items-start [@media(max-width:680px)]:grid-cols-[1fr_auto] [@media(max-width:680px)]:[gap:0px_15px]"}>
-        <span className="bk-eyebrow [@media(max-width:680px)]:[grid-column:1/-1] [translate:none] [rotate:none] [scale:none]" style={{ opacity: "0.9769", transform: "translate(0px, 0px)" }}>A NOSSA IDEIA DE FORNO</span>
-        <h2 className="[translate:none] [rotate:none] [scale:none]" style={{ opacity: "1", transform: "translate(0px, 0px)" }} id="bk-feature-title">Cacau no ponto.<br /><em className="[letter-spacing:-0.035em]">Pressa nenhuma.</em></h2>
-        <p className="[@media(max-width:680px)]:[grid-column:1/-1] [translate:none] [rotate:none] [scale:none]" style={{ opacity: "1", transform: "translate(0px, 0px)" }}>Massa descansada na geladeira, forno baixo e tempo. É o que separa um brownie de um bolo de chocolate qualquer.</p>
+        <span className="bk-eyebrow [@media(max-width:680px)]:[grid-column:1/-1] [translate:none] [rotate:none] [scale:none]">A NOSSA IDEIA DE FORNO</span>
+        <h2 className="[translate:none] [rotate:none] [scale:none]" id="bk-feature-title">Cacau no ponto.<br /><em className="[letter-spacing:-0.035em]">Pressa nenhuma.</em></h2>
+        <p className="[@media(max-width:680px)]:[grid-column:1/-1] [translate:none] [rotate:none] [scale:none]">Massa descansada na geladeira, forno baixo e tempo. É o que separa um brownie de um bolo de chocolate qualquer.</p>
         <div className="bk-dish-selector [@media(max-width:680px)]:[grid-column:1/-1]" role="tablist" aria-label="Destaques">
           {FEATURED.map((id, index) => {
             const item = dishById(id);
             return (
-              <button key={id} className={`${featured === id ? "is-active " : ""}aspect-square [&]:relative [overflow:hidden] ${FOCUS} [translate:none] [rotate:none] [scale:none]`} style={{ opacity: "1", transform: "translate(0px, 20px) rotate(-5.0002deg) scale(1.00001, 1.00001)" }} role="tab" aria-selected={featured === id} aria-label={item.name} onClick={() => setFeatured(id)}>
+              <button key={id} className={`${featured === id ? "is-active " : ""}aspect-square [&]:relative [overflow:hidden] ${FOCUS} [translate:none] [rotate:none] [scale:none]`} role="tab" aria-selected={featured === id} aria-label={item.name} onClick={() => setFeatured(id)}>
                 {item.image ? (
                   <img className="object-cover [filter:saturate(1)] [width:100%]" alt="" loading="lazy" decoding="async" src={item.image} />
                 ) : (
@@ -547,13 +594,13 @@ function ImportedSectionCacauNoPontoPressa({ shop }: { shop: Shop }) {
         </div>
       </div>
       <div className={"bk-feature__art items-center justify-center [&]:relative [min-width:0px] [@media(max-width:680px)]:self-center [@media(max-width:680px)]:aspect-square [@media(max-width:680px)]:max-w-[450px] [@media(max-width:680px)]:[margin:20px_0px_4px] [@media(max-width:680px)]:[width:100%]"}>
-        <div className={"bk-feature__ring aspect-square pointer-events-none [&]:absolute [translate:none] [rotate:none] [scale:none]"} style={{ transform: "rotate(-11.9999deg)" }} />
-        <div className={"bk-feature__ring bk-feature__ring--two aspect-square pointer-events-none [&]:absolute [translate:none] [rotate:none] [scale:none]"} style={{ transform: "rotate(13.9998deg)" }} />
-        <div className={"bk-feature__frame [&]:relative [box-shadow:rgba(18,11,8,0.33)_0px_25px_45px] [overflow:hidden] [translate:none] [rotate:none] [scale:none]"} style={{ opacity: "1", transform: "translate(0px, 0px)" }}>
+        <div className={"bk-feature__ring bk-feature__ring--one aspect-square pointer-events-none [&]:absolute [translate:none] [rotate:none] [scale:none]"} />
+        <div className={"bk-feature__ring bk-feature__ring--two aspect-square pointer-events-none [&]:absolute [translate:none] [rotate:none] [scale:none]"} />
+        <div className={"bk-feature__frame [&]:relative [box-shadow:rgba(18,11,8,0.33)_0px_25px_45px] [overflow:hidden] [translate:none] [rotate:none] [scale:none]"}>
           {dish.image ? <img className="object-cover [width:100%]" alt={dish.name} loading="lazy" decoding="async" src={dish.image} /> : <span className="bk-dish__placeholder">Foto em produção</span>}
         </div>
-        <span className={"bk-feature__annotation [&]:absolute"} style={{ clipPath: "none" } as CSSProperties} aria-hidden="true">assado devagar<svg className="bk-scribble mt-[7px] [flex-shrink:0] [max-width:100%]" viewBox="0 0 220 66" fill="none"><path d="M5 39C44 6 152 6 210 26C241 37 119 67 33 48C-10 38 73 21 180 30M175 20L211 26L184 48" stroke="currentColor" strokeWidth="3" strokeLinecap="round" /></svg></span>
-        <span className={"bk-feature__number pointer-events-none [&]:absolute [-webkit-text-stroke:1px_rgba(232,200,125,0.37)] [letter-spacing:-0.08em] [translate:none] [rotate:none] [scale:none]"} style={{ transform: "translate(0px, 35px)" }} aria-hidden="true">{number}</span>
+        <span className={"bk-feature__annotation [&]:absolute"} aria-hidden="true">assado devagar<svg className="bk-scribble mt-[7px] [flex-shrink:0] [max-width:100%]" viewBox="0 0 220 66" fill="none"><path d="M5 39C44 6 152 6 210 26C241 37 119 67 33 48C-10 38 73 21 180 30M175 20L211 26L184 48" stroke="currentColor" strokeWidth="3" strokeLinecap="round" /></svg></span>
+        <span className={"bk-feature__number pointer-events-none [&]:absolute [-webkit-text-stroke:1px_rgba(232,200,125,0.37)] [letter-spacing:-0.08em] [translate:none] [rotate:none] [scale:none]"} aria-hidden="true">{number}</span>
       </div>
     </section>
   );
@@ -593,17 +640,17 @@ function ImportedSectionUmPoucoDeCacau() {
   return (
     <section className="bk-story bk-section items-center [scroll-margin-top:85px] [@media(max-width:680px)]:flex-col" id="casa" aria-labelledby="bk-story-title">
       <div className={"[&]:relative [min-width:0px] [@media(max-width:680px)]:[width:100%]"}>
-        <div className="bk-story__photo [overflow:hidden]" style={{ clipPath: "inset(12% 8% round 180px)" } as CSSProperties}>
+        <div className="bk-story__photo [overflow:hidden]">
           <img className="object-cover [width:100%]" alt="Brownies em uma mesa de madeira, com cacau e flor de sal ao redor" loading="lazy" decoding="async" src="/site-assets/6c6b089f6f2e8732.webp" />
         </div>
-        <div className={"bk-story__note [&]:absolute [box-shadow:rgba(44,30,17,0.07)_5px_9px] [translate:none] [rotate:none] [scale:none]"} style={{ transform: "translate(0px, 35px) rotate(-14deg)" }} aria-hidden="true">assado devagar<svg className="fill-none w-[90px] [flex-shrink:0] [margin:5px_0px_0px_45px] [stroke:currentcolor] [stroke-linecap:round] [stroke-width:2px]" viewBox="0 0 100 46"><path className="[stroke-dashoffset:0px] [stroke-dasharray:130.926]" d="M4 8Q54 2 88 24M88 24L66 20M88 24L74 40" /></svg></div>
+        <div className={"bk-story__note [&]:absolute [box-shadow:rgba(44,30,17,0.07)_5px_9px] [translate:none] [rotate:none] [scale:none]"} aria-hidden="true">assado devagar<svg className="bk-draw fill-none w-[90px] [flex-shrink:0] [margin:5px_0px_0px_45px] [stroke:currentcolor] [stroke-linecap:round] [stroke-width:2px]" viewBox="0 0 100 46"><path d="M4 8Q54 2 88 24M88 24L66 20M88 24L74 40" /></svg></div>
       </div>
       <div className="bk-story__copy [@media(max-width:680px)]:[width:100%]">
         <span className="bk-eyebrow">A NOSSA IDEIA DE CONFEITARIA</span>
-        <h2 className="[translate:none] [rotate:none] [scale:none]" style={{ clipPath: "none", opacity: "1", transform: "translate(0px, 0px)" } as CSSProperties} id="bk-story-title">Um pouco de cacau.<br /><em className="[letter-spacing:-0.035em]">Um tanto de afeto.</em></h2>
-        <p className="bk-story__lead [translate:none] [rotate:none] [scale:none]" style={{ opacity: "1", transform: "translate(0px, 0px)" }}>Uma casa para quem acredita que doce também é um jeito de cuidar.</p>
-        <p className="[translate:none] [rotate:none] [scale:none]" style={{ opacity: "1", transform: "translate(0px, 0px)" }}>A Doce Forno começou numa cozinha pequena, com uma forma de 20 cm e a teimosia de assar todo dia. Hoje são duas fornadas diárias, sempre em pequenas quantidades, porque brownie bom não espera a semana inteira.</p>
-        <p className="[translate:none] [rotate:none] [scale:none]" style={{ opacity: "1", transform: "translate(0px, 0px)" }}>Cacau de origem, manteiga de verdade, ovos de galinha caipira e o tempo que a massa precisa para descansar na geladeira antes de ir ao forno. Nenhum atalho: é isso que separa um brownie de um bolo de chocolate qualquer.</p>
+        <h2 className="bk-reveal [translate:none] [rotate:none] [scale:none]" id="bk-story-title">Um pouco de cacau.<br /><em className="[letter-spacing:-0.035em]">Um tanto de afeto.</em></h2>
+        <p className="bk-story__lead bk-reveal [translate:none] [rotate:none] [scale:none]">Uma casa para quem acredita que doce também é um jeito de cuidar.</p>
+        <p className="bk-reveal [translate:none] [rotate:none] [scale:none]">A Doce Forno começou numa cozinha pequena, com uma forma de 20 cm e a teimosia de assar todo dia. Hoje são duas fornadas diárias, sempre em pequenas quantidades, porque brownie bom não espera a semana inteira.</p>
+        <p className="bk-reveal [translate:none] [rotate:none] [scale:none]">Cacau de origem, manteiga de verdade, ovos de galinha caipira e o tempo que a massa precisa para descansar na geladeira antes de ir ao forno. Nenhum atalho: é isso que separa um brownie de um bolo de chocolate qualquer.</p>
         <a className={"bk-button items-center isolate justify-center mt-[25px] no-underline whitespace-nowrap [overflow:hidden] [&:focus-visible]:[outline:3px_solid_var(--bk-script)] [&:focus-visible]:[outline-offset:5px] [&:hover]:[box-shadow:rgba(158,102,46,0.22)_0px_7px_25px]"} href="#cardapio">Encontre o seu doce <svg className="[flex-shrink:0]" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12h14" /><path d="m12 5 7 7-7 7" /></svg></a>
         <div className="bk-story__signature items-center"><svg className="[flex-shrink:0]" width="46" height="14" viewBox="0 0 46 14" fill="none" aria-hidden="true"><path d="M1 9c8-7 14 4 22-2s12 5 22-4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" /></svg>Doce Forno</div>
       </div>
@@ -615,16 +662,16 @@ function ImportedSectionTemSempreumBoloEsperando({ shop }: { shop: Shop }) {
   return (
     <section className={"bk-visit [&]:relative [overflow:hidden] [scroll-margin-top:85px] [@media(max-width:680px)]:flex-col"} id="encomenda" aria-labelledby="bk-visit-title">
       <div className={"bk-visit__copy [&]:relative [z-index:2]"}>
-        <span className="bk-eyebrow mb-[20px] [translate:none] [rotate:none] [scale:none]" style={{ opacity: "1", transform: "translate(0px, 0px)" }}>MUITO PRAZER. PODE CHEGAR.</span>
-        <h2 className="[translate:none] [rotate:none] [scale:none]" style={{ opacity: "1", transform: "translate(0px, 0px)" }} id="bk-visit-title">Tem sempre<br /><em className="[letter-spacing:-0.035em]">um bolo esperando.</em></h2>
-        <p className="[translate:none] [rotate:none] [scale:none]" style={{ opacity: "1", transform: "translate(0px, 0px)" }}>Encomendas com 48 horas de antecedência, retirada no ateliê ou entrega na região. Escolha o recheio, a cobertura e a mensagem: a gente assa no dia.</p>
-        <div className="bk-visit__buttons items-center [translate:none] [rotate:none] [scale:none]" style={{ opacity: "1", transform: "translate(0px, 0px)" }}>
+        <span className="bk-eyebrow mb-[20px] [translate:none] [rotate:none] [scale:none]">MUITO PRAZER. PODE CHEGAR.</span>
+        <h2 className="[translate:none] [rotate:none] [scale:none]" id="bk-visit-title">Tem sempre<br /><em className="[letter-spacing:-0.035em]">um bolo esperando.</em></h2>
+        <p className="[translate:none] [rotate:none] [scale:none]">Encomendas com 48 horas de antecedência, retirada no ateliê ou entrega na região. Escolha o recheio, a cobertura e a mensagem: a gente assa no dia.</p>
+        <div className="bk-visit__buttons items-center [translate:none] [rotate:none] [scale:none]">
           <a className={"bk-button items-center isolate justify-center no-underline whitespace-nowrap [overflow:hidden] [&:focus-visible]:[outline:3px_solid_var(--bk-script)] [&:focus-visible]:[outline-offset:5px] [&:hover]:[box-shadow:rgba(158,102,46,0.22)_0px_7px_25px]"} href="https://wa.me/5511999999999?text=Ol%C3%A1!%20Gostaria%20de%20encomendar%20um%20brownie%20ou%20um%20bolo%20com%20a%20Doce%20Forno." rel="noreferrer" target="_blank">Pedir pelo WhatsApp <svg className="[flex-shrink:0]" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M2.992 16.342a2 2 0 0 1 .094 1.167l-1.065 3.29a1 1 0 0 0 1.236 1.168l3.413-.998a2 2 0 0 1 1.099.092 10 10 0 1 0-4.777-4.719" /></svg></a>
           <button className={"bk-text-link items-center gap-[11px] min-h-[44px] [&:focus-visible]:[outline:3px_solid_var(--bk-script)] [&:focus-visible]:[outline-offset:5px]"} onClick={shop.openBasket}>Montar seleção <svg className="[flex-shrink:0]" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M7 7h10v10" /><path d="M7 17 17 7" /></svg></button>
         </div>
         <span className="bk-visit__note">Encomendas sob medida · retirada e entrega a combinar</span>
       </div>
-      <div className="bk-visit__photo [overflow:hidden]" style={{ clipPath: "ellipse(82% 80% at 80% 58%)" } as CSSProperties}>
+      <div className="bk-visit__photo [overflow:hidden]">
         <img className={"object-cover [&]:absolute [inset:0px] [width:100%]"} alt="Brownies prontos para entrega sobre a bancada" loading="lazy" decoding="async" src="/site-assets/6c6b089f6f2e8732.webp" />
         <span className={"[&]:absolute [text-shadow:rgba(0,0,0,0.6)_0px_2px_15px] [z-index:2]"}>feito pra você</span>
         <svg className={"fill-none [&]:absolute [flex-shrink:0] [stroke:rgb(255,230,176)] [stroke-width:2px] [z-index:2]"} viewBox="0 0 100 90" aria-hidden="true">
@@ -640,7 +687,7 @@ function ImportedSectionSemDVidaCom() {
     <section className="bk-faq bk-section [scroll-margin-top:85px]" id="duvidas" aria-labelledby="bk-faq-title">
       <div>
         <span className="bk-eyebrow">ANTES DE PEDIR</span>
-        <h2 className="[translate:none] [rotate:none] [scale:none] [clip-path:none]" style={{ opacity: "1", transform: "translate(0px, 0px)" }} id="bk-faq-title">Sem dúvida.<br /><em className="[letter-spacing:-0.035em]">Com vontade.</em></h2>
+        <h2 className="bk-reveal [translate:none] [rotate:none] [scale:none]" id="bk-faq-title">Sem dúvida.<br /><em className="[letter-spacing:-0.035em]">Com vontade.</em></h2>
       </div>
       <div>
         <details className="[interpolate-size:allow-keywords]">
@@ -693,4 +740,240 @@ function ImportedFooter() {
       </div>
     </footer>
   );
+}
+
+const INTRO_KEY = "doce-forno-abertura";
+const HERO_PHOTO = "/site-assets/6c6b089f6f2e8732.webp";
+const SPARKS: Array<[number, number]> = [[15, 35], [24, 65], [37, 20], [58, 16], [74, 34], [85, 56], [65, 76], [32, 78]];
+const ARROW = <><path d="M5 12h14" /><path d="m12 5 7 7-7 7" /></>;
+
+function useAssetsReady() {
+  const [ready, setReady] = useState(false);
+  useEffect(() => {
+    let cancelled = false;
+    const image = new Promise<void>((resolve) => {
+      const img = new Image();
+      img.onload = () => resolve();
+      img.onerror = () => resolve();
+      img.src = HERO_PHOTO;
+      if (img.complete) resolve();
+    });
+    const fonts = document.fonts?.ready ?? Promise.resolve();
+    const timeout = new Promise<void>((resolve) => window.setTimeout(resolve, 3500));
+    Promise.race([Promise.all([image, fonts]).then(() => undefined), timeout]).then(() => {
+      if (!cancelled) setReady(true);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+  return ready;
+}
+
+function OpeningIntro({ assetsReady, onFinish }: { assetsReady: boolean; onFinish: () => void }) {
+  const root = useRef<HTMLDivElement>(null);
+  const finished = useRef(false);
+  const played = useRef(false);
+  const ready = useRef(assetsReady);
+  const finish = useRef(onFinish);
+  ready.current = assetsReady;
+  finish.current = onFinish;
+
+  useEffect(() => {
+    const element = root.current;
+    if (!element) return;
+    const done = () => {
+      if (finished.current) return;
+      finished.current = true;
+      finish.current();
+    };
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return done();
+    const phone = window.matchMedia("(max-width: 680px)").matches;
+    const k = phone ? 0.84 : 1;
+    const ctx = gsap.context(() => {
+      const inks = element.querySelectorAll<SVGGeometryElement>(".bk-opening__ink");
+      inks.forEach((ink) => {
+        const length = ink.getTotalLength();
+        gsap.set(ink, { strokeDasharray: length, strokeDashoffset: length });
+      });
+      gsap
+        .timeline({ defaults: { ease: "power3.out" }, onComplete: () => { played.current = true; if (ready.current) done(); } })
+        .from(".bk-opening__plate", { scale: 0.68, rotation: -52, duration: 1.2 * k }, 0)
+        .to(inks, { strokeDashoffset: 0, duration: 1.05 * k, stagger: 0.045 }, 0.1 * k)
+        .from(".bk-opening__letter", { yPercent: 125, rotation: (index: number) => (index % 2 ? 9 : -9), duration: 0.85 * k, stagger: 0.055 * k }, 0.18 * k)
+        .from(".bk-opening__script", { clipPath: "inset(0 100% 0 0)", x: -20, rotation: -12, duration: 0.85 * k }, 0.62 * k)
+        .from(".bk-opening__eyebrow", { opacity: 0, y: 10, duration: 0.5 * k }, 0.4 * k)
+        .from(".bk-opening__ticket", { x: 35, y: 55, rotation: 18, opacity: 0, duration: 0.75 * k }, 0.75 * k)
+        .fromTo(".bk-opening__spark", { y: 35, scale: 0, opacity: 0 }, { y: -65, scale: 1, opacity: 0.8, stagger: 0.06 * k, duration: 0.7 * k }, 0.65 * k)
+        .to(".bk-opening__spark", { y: -115, opacity: 0, duration: 0.7, stagger: 0.025 }, 1.35 * k)
+        .to(".bk-opening__status-track", { yPercent: -33.333, duration: 0.4 }, 0.9 * k)
+        .to(".bk-opening__status-track", { yPercent: -66.666, duration: 0.4 }, 1.65 * k)
+        .to(".bk-opening__progress > i", { scaleX: 1, duration: 2.8, ease: "none" }, 0)
+        .to(".bk-opening__composition", { y: phone ? -35 : -75, scale: 0.94, opacity: 0, duration: 0.5, ease: "power2.in" }, 1.9 * k)
+        .to(".bk-opening__sheet", { clipPath: "polygon(0% 0%, 100% 0%, 100% 0%, 0% 100%)", duration: 0.72, ease: "power3.inOut" }, 2 * k)
+        .to(".bk-opening__sheet", { clipPath: "polygon(0% 0%, 100% 0%, 100% 0%, 0% 0%)", duration: 0.56, ease: "power3.out" }, 2.62 * k)
+        .to(".bk-opening__trail", { clipPath: "polygon(0% 0%, 100% 0%, 100% 0%, 0% 0%)", duration: 1.12, ease: "expo.inOut" }, 2.12 * k)
+        .to(".bk-opening__footer", { opacity: 0, y: 12, duration: 0.25 }, 2 * k);
+      gsap.delayedCall(4.8, done);
+      element.classList.add("is-playing");
+    }, element);
+    return () => ctx.revert();
+  }, []);
+
+  useEffect(() => {
+    if (assetsReady && played.current && !finished.current) {
+      finished.current = true;
+      finish.current();
+    }
+  }, [assetsReady]);
+
+  return (
+    <div ref={root} className="bk-opening" data-testid="cinematic-intro" aria-label="Abertura da Doce Forno">
+      <div className="bk-opening__trail" />
+      <div className="bk-opening__sheet">
+        <div className="bk-opening__composition">
+          <svg className="bk-opening__plate" viewBox="0 0 540 540" fill="none" aria-hidden="true">
+            <circle className="bk-opening__ink" cx="270" cy="270" r="249" />
+            <circle className="bk-opening__ink" cx="270" cy="270" r="230" />
+            <path className="bk-opening__ink" d="M78 172Q47 154 53 124Q88 131 78 172ZM456 364Q491 351 490 321Q454 326 456 364ZM110 423L85 448M425 100L449 77M87 305L54 308M440 225L478 222" />
+            <path className="bk-opening__ink bk-opening__steam" d="M244 133C215 108 267 91 245 65M271 130C247 107 293 88 272 62M298 133C275 109 318 96 304 72" />
+          </svg>
+          <span className="bk-opening__eyebrow">O FORNO ACENDE. A CASA CHEIRA.</span>
+          <div className="bk-opening__word" aria-label="Cacau">
+            {"CACAU".split("").map((letter, index) => (
+              <span key={`${letter}-${index}`} className="bk-opening__letter" aria-hidden="true">{letter}</span>
+            ))}
+          </div>
+          <span className="bk-opening__script">no ponto.</span>
+          <div className="bk-opening__ticket">
+            <span>Doce Forno</span>
+            <small>BROWNIES E BOLOS.<br />ASSADOS TODO DIA.</small>
+            <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{ARROW}</svg>
+          </div>
+          <div className="bk-opening__sparks" aria-hidden="true">
+            {SPARKS.map(([left, top], index) => (
+              <i key={`${left}-${top}`} className="bk-opening__spark" style={{ left: `${left}%`, top: `${top}%`, animationDelay: `${index * 0.2}s` }} />
+            ))}
+          </div>
+        </div>
+        <div className="bk-opening__footer">
+          <div>
+            <div className="bk-opening__status">
+              <div className="bk-opening__status-track">
+                <span>O forno acende.</span>
+                <span>A massa descansa.</span>
+                <span>Pode chegar.</span>
+              </div>
+            </div>
+            <div className="bk-opening__progress"><i /></div>
+          </div>
+          <button className={`bk-opening__skip ${FOCUS}`} onClick={() => { if (!finished.current) { finished.current = true; finish.current(); } }}>
+            Pular abertura <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{ARROW}</svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Entrance, scroll-reveal and hover motion ported from the original site.
+// The "Chocolate derretido" pin and the scroll progress bar are driven by their own components.
+function useSiteMotion(rootRef: RefObject<HTMLDivElement | null>, enabled: boolean) {
+  useEffect(() => {
+    const root = rootRef.current;
+    if (!enabled || !root) return;
+    gsap.registerPlugin(ScrollTrigger);
+    let alive = true;
+    const ctx = gsap.context(() => {
+      const small = window.matchMedia("(max-width: 899px)").matches;
+      const hero = gsap.timeline({ defaults: { ease: "power4.out" } });
+      hero
+        .from(".bk-header", { y: -18, opacity: 0, duration: 0.8 }, 0.1)
+        .from(".bk-hero__line > span", { yPercent: 115, rotation: small ? 0 : 3, duration: small ? 0.85 : 1.15, stagger: 0.105 }, 0.08)
+        .from(".bk-hero__copy > p, .bk-hero__actions, .bk-hero__promises", { opacity: 0, y: small ? 14 : 25, duration: 0.75, stagger: 0.085 }, 0.42)
+        .from(".bk-hero__note", { rotation: -20, scale: 0.82, opacity: 0, duration: 0.9 }, 0.65);
+      gsap.fromTo(".bk-hero__image", { scale: small ? 1.025 : 1.055 }, { scale: 1, duration: small ? 1.35 : 1.9, ease: "power3.out" });
+      const underline = root.querySelector<SVGPathElement>(".bk-hero__line--script path");
+      if (underline) {
+        const length = underline.getTotalLength();
+        hero.fromTo(underline, { strokeDasharray: length, strokeDashoffset: length }, { strokeDashoffset: 0, duration: 1, ease: "power2.inOut" }, 0.65);
+      }
+
+      gsap
+        .timeline({ scrollTrigger: { trigger: ".bk-menu-heading", start: "top 90%", once: true }, defaults: { ease: "power3.out" } })
+        .from(".bk-menu-heading > div:first-child", { y: small ? 24 : 45, clipPath: "inset(0% 0% 100% 0%)", duration: 1.1 })
+        .from(".bk-menu-heading__aside", { x: small ? 0 : 30, y: small ? 18 : 0, opacity: 0, duration: 0.8 }, 0.25)
+        .from(".bk-categories > button", { y: 16, opacity: 0, duration: 0.5, stagger: 0.055 }, 0.4);
+      gsap.fromTo(".bk-dish__image", { clipPath: "inset(0% 0% 100% 0% round 16px)" }, { clipPath: "inset(0% 0% 0% 0% round 16px)", stagger: small ? 0.075 : 0.12, duration: 0.95, ease: "power3.inOut", clearProps: "clipPath", scrollTrigger: { trigger: ".bk-menu-grid", start: "top 90%", once: true } });
+      gsap.from(".bk-dish__body", { y: 25, opacity: 0, stagger: 0.08, duration: 0.8, scrollTrigger: { trigger: ".bk-menu-grid", start: "top 86%", once: true } });
+
+      gsap
+        .timeline({ scrollTrigger: { trigger: ".bk-feature", start: "top 87%", once: true }, defaults: { ease: "power3.out" } })
+        .from(".bk-feature__copy > .bk-eyebrow, .bk-feature__copy > h2, .bk-feature__copy > p", { y: small ? 22 : 38, opacity: 0, stagger: 0.1, duration: 0.9 })
+        .from(".bk-dish-selector > button", { y: 20, rotation: small ? 0 : -5, opacity: 0, duration: 0.55, stagger: 0.07, clearProps: "transform" }, 0.3)
+        .from(".bk-feature__frame", { scale: small ? 0.94 : 0.86, rotation: small ? 0 : -7, opacity: 0, duration: 1.15 }, 0.1)
+        .from(".bk-feature__annotation", { clipPath: "inset(0 100% 0 0)", duration: 0.85 }, 0.6);
+      gsap.to(".bk-feature__ring--one", { rotation: 55, ease: "none", scrollTrigger: { trigger: ".bk-feature", start: "top bottom", end: "bottom top", scrub: small ? true : 0.6 } });
+      gsap.to(".bk-feature__ring--two", { rotation: -35, ease: "none", scrollTrigger: { trigger: ".bk-feature", start: "top bottom", end: "bottom top", scrub: small ? true : 0.6 } });
+      gsap.fromTo(".bk-feature__number", { y: 35 }, { y: -25, ease: "none", scrollTrigger: { trigger: ".bk-feature", start: "top bottom", end: "bottom top", scrub: true } });
+      gsap.fromTo(".bk-ticker", { rotation: -2.2, y: 12 }, { rotation: -0.6, y: -10, ease: "none", scrollTrigger: { trigger: ".bk-ticker", start: "top bottom", end: "bottom top", scrub: true } });
+
+      gsap.utils.toArray<HTMLElement>(".bk-reveal").forEach((element) => {
+        const heading = element.tagName === "H2";
+        gsap.from(element, { y: small ? 20 : heading ? 38 : 26, opacity: 0, ...(heading ? { clipPath: "inset(0 0 100% 0)" } : {}), duration: heading ? 1.05 : 0.8, ease: "power3.out", scrollTrigger: { trigger: element, start: "top 93%", once: true } });
+      });
+      gsap.utils.toArray<SVGPathElement>(".bk-draw path").forEach((path) => {
+        const length = path.getTotalLength();
+        gsap.fromTo(path, { strokeDasharray: length, strokeDashoffset: length }, { strokeDashoffset: 0, duration: 1.35, ease: "power2.inOut", scrollTrigger: { trigger: path, start: "top 89%", once: true } });
+      });
+      gsap.fromTo(".bk-story__photo", { clipPath: small ? "inset(6% 5% 6% 5% round 100px)" : "inset(12% 8% 12% 8% round 180px)" }, { clipPath: "inset(0% 0% 0% 0% round 20px)", ease: "none", scrollTrigger: { trigger: ".bk-story", start: "top 90%", end: "center center", scrub: small ? true : 0.65 } });
+      gsap.fromTo(".bk-story__note", { rotation: small ? -5 : -14, y: small ? 10 : 35 }, { rotation: small ? 3 : 5, y: small ? -8 : -20, ease: "none", scrollTrigger: { trigger: ".bk-story", start: "top bottom", end: "bottom top", scrub: small ? true : 0.6 } });
+      gsap
+        .timeline({ scrollTrigger: { trigger: ".bk-visit", start: "top 88%", once: true }, defaults: { ease: "power3.out" } })
+        .from(".bk-visit__copy > .bk-eyebrow, .bk-visit__copy > h2, .bk-visit__copy > p, .bk-visit__buttons", { y: small ? 22 : 38, opacity: 0, duration: 0.9, stagger: 0.12 })
+        .from(".bk-visit__photo", { clipPath: small ? "ellipse(10% 20% at 60% 82%)" : "ellipse(10% 20% at 80% 58%)", duration: 1.2 }, 0.12);
+
+      const media = gsap.matchMedia();
+      media.add("(min-width: 900px)", () => {
+        gsap.to(".bk-hero__image", { yPercent: 5, ease: "none", scrollTrigger: { trigger: ".bk-hero", start: "top top", end: "bottom top", scrub: 0.55 } });
+        gsap.to(".bk-hero__copy", { y: -45, ease: "none", scrollTrigger: { trigger: ".bk-hero", start: "top top", end: "bottom top", scrub: 0.55 } });
+      });
+      media.add("(max-width: 767px)", () => {
+        gsap.from(".bk-scene__word", { y: 28, opacity: 0, stagger: 0.15, duration: 0.9, ease: "power3.out", scrollTrigger: { trigger: ".bk-scene h2", start: "top 88%", once: true } });
+      });
+      media.add("(hover: hover) and (pointer: fine)", () => {
+        const cleanups: Array<() => void> = [];
+        root.querySelectorAll<HTMLElement>(".bk-button").forEach((button) => {
+          const icon = button.querySelector("svg");
+          if (!icon) return;
+          const toX = gsap.quickTo(icon, "x", { duration: 0.3, ease: "power3.out" });
+          const toY = gsap.quickTo(icon, "y", { duration: 0.3, ease: "power3.out" });
+          const move = (event: PointerEvent) => {
+            const box = button.getBoundingClientRect();
+            toX((event.clientX - box.left - box.width / 2) * 0.055);
+            toY((event.clientY - box.top - box.height / 2) * 0.16);
+          };
+          const leave = () => {
+            toX(0);
+            toY(0);
+          };
+          button.addEventListener("pointermove", move);
+          button.addEventListener("pointerleave", leave);
+          cleanups.push(() => {
+            button.removeEventListener("pointermove", move);
+            button.removeEventListener("pointerleave", leave);
+          });
+        });
+        return () => cleanups.forEach((cleanup) => cleanup());
+      });
+    }, root);
+    const refresh = () => alive && ScrollTrigger.refresh();
+    document.fonts?.ready.then(refresh);
+    const timer = window.setTimeout(refresh, 450);
+    return () => {
+      alive = false;
+      window.clearTimeout(timer);
+      ctx.revert();
+    };
+  }, [enabled, rootRef]);
 }
