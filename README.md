@@ -1,10 +1,8 @@
-# Enter Property Discovery
-
-Imported website: https://76b39da711374424bb04e6a49fceea06.prod.enter.pro/?_gl=1*111k11u*_gcl_au*NzYwNDY4MDg5LjE3OTQ4NDc0MzguLS4tLjE3OTQ4NDc1ODUuMTY5NTc0NDcxMC4xNzk0ODQ3NTg2LjE3OTQ5MTcyNzQ.*_ga*MTI5MzY5NzMzMy4xNzk0ODQ3NDM4*_ga_GKYS1YX5T4*czE3OTQ5MTQ4NDAkbzMkZzEkdDE3OTQ5MTczMDMkajU0JGwwJGgxNDExNTI4ODMz
+# Doce Forno
 
 This project was built with [Lovable](https://lovable.dev).
 
-**Live app**: https://enter-property-discovery.lovable.app
+**Site publicado (versão mais recente)**: https://enter-property-discovery.lovable.app
 
 ## Build with Lovable
 
