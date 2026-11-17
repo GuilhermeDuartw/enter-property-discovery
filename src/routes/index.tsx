@@ -3,7 +3,16 @@ import { createFileRoute } from "@tanstack/react-router";
 import capturedCSS from "../styles/site.css?raw";
 
 export const Route = createFileRoute("/")({
-  head: () => ({ meta: [{ title: "Doce Forno — brownies e bolos feitos à mão" }] }),
+  head: () => ({
+    meta: [
+      { title: "Doce Forno — brownies e bolos feitos à mão" },
+      { name: "description", content: "Brownies e bolos artesanais em São Paulo. Monte sua seleção e finalize o pedido pelo WhatsApp." },
+      { property: "og:title", content: "Doce Forno — brownies e bolos feitos à mão" },
+      { property: "og:description", content: "Brownies e bolos artesanais em São Paulo. Monte sua seleção e finalize o pedido pelo WhatsApp." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+    ],
+  }),
   staticData: { importedDocument: { html: { "lang": "pt-BR", "style": { scrollBehavior: "smooth" } }, body: {  } } },
   component: Index,
 });
