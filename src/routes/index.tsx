@@ -553,7 +553,7 @@ function ImportedSectionChocolatederretido({ progress, pinned }: { progress: num
   const eased = 1 - (1 - progress) ** 2;
   const rest = 1 - eased;
   return (
-    <section className={"bk-scene [&]:sticky [top:0px] [width:100%] [overflow:hidden] [scroll-margin-top:85px] [translate:none] [rotate:none] [scale:none] [@media(max-width:680px)]:[&]:relative"} id="forno" aria-labelledby="bk-scene-title" data-site-import-responsive="355">
+    <section className={"bk-scene [&]:sticky [top:0px] [width:100%] [overflow:hidden] [scroll-margin-top:85px] [translate:none] [rotate:none] [scale:none]"} id="forno" aria-labelledby="bk-scene-title" data-site-import-responsive="355">
       <img className={"bk-scene__image object-cover [&]:absolute [translate:none] [rotate:none] [scale:none]"} style={(pinned ? { clipPath: `inset(${8 * rest}% ${13 * rest}% round ${160 * rest}px)`, transform: `scale(${1 + 0.12 * rest})` } : { transform: "scale(1.06, 1.06)" }) as CSSProperties} alt="Brownies recém-saídos do forno, com ganache derretida" loading="lazy" decoding="async" src="/site-assets/6c6b089f6f2e8732.webp" data-site-import-responsive="356" />
       <div className={"bk-scene__shade [&]:absolute [inset:0px]"} />
       <div className={"bk-fire-atmosphere pointer-events-none [&]:absolute [inset:0px] [overflow:hidden]"} aria-hidden="true">
