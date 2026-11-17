@@ -5302,3 +5302,43 @@ body {
 }
 
 
+
+/* Restored from .site-import/captured.css: popups, toast and phone menu states (observed on the source, absent from the static capture) */
+.bk-button--full { width: 100%; }
+.bk-dialog-overlay { background: rgba(18, 11, 8, 0.66); backdrop-filter: blur(7px); z-index: 130; position: fixed; inset: 0px; display: grid; place-items: center; padding: 20px; overflow-y: auto; animation: bk-fade-in 0.25s ease both; }
+.bk-dialog { background: var(--bk-cream); color: var(--bk-ink); border-radius: 24px; width: min(540px, 100%); max-height: calc(-40px + 100svh); padding: 0px; overflow-y: auto; box-shadow: rgba(0, 0, 0, 0.4) 0px 28px 100px; text-align: left; animation: bk-dialog-in 0.35s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+.bk-dialog--wide { width: min(850px, 100%); }
+.bk-dialog__body { padding: 28px; }
+.bk-dialog__heading { color: rgb(138, 108, 74); justify-content: space-between; align-items: center; gap: 12px; display: flex; }
+.bk-dialog__intro { color: var(--bk-muted); max-width: 360px; font-size: 12px; margin-bottom: 25px !important; }
+.bk-detail { grid-template-columns: 1fr 1fr; align-items: center; gap: 25px; display: grid; }
+.bk-detail__placeholder { position: relative; border-radius: 14px; width: 100%; height: 330px; overflow: hidden; background: linear-gradient(150deg, rgb(58, 42, 28), rgb(36, 22, 9)); }
+.bk-sizes { margin-top: 4px; display: flex; flex-wrap: wrap; gap: 8px; }
+.bk-basket-items { flex-direction: column; gap: 20px; display: flex; }
+.bk-basket-item { border-bottom: 1px solid rgba(50, 36, 27, 0.13); grid-template-columns: 100px 1fr; align-items: center; gap: 18px; padding-bottom: 20px; display: grid; }
+.bk-basket-item > .bk-basket-item__placeholder { border-radius: 12px; width: 100%; height: 100px; background: linear-gradient(150deg, rgb(58, 42, 28), rgb(36, 22, 9)); }
+.bk-quantity { align-items: center; gap: 16px; margin-top: 8px; font-size: 12px; display: flex; }
+.bk-field { display: block; margin-top: 16px; font-size: 11px; font-weight: 600; }
+.bk-total { justify-content: space-between; align-items: center; margin: 24px 0px 15px; font-size: 12px; display: flex; }
+.bk-local-note { color: rgb(131, 114, 93); font-size: 10px; line-height: 1.7; margin: 10px 0px 20px !important; }
+.bk-empty { text-align: center; flex-direction: column; align-items: center; gap: 18px; padding: 25px 15px; display: flex; }
+.bk-toast { z-index: 110; color: rgb(51, 40, 26); background: var(--bk-paper); border: 1px solid rgba(175, 140, 106, 0.32); border-radius: 15px; align-items: center; gap: 12px; max-width: calc(-24px + 100vw); padding: 15px 20px; font-size: 11px; display: flex; position: fixed; bottom: 25px; left: 50%; box-shadow: rgba(29, 19, 12, 0.22) 0px 8px 40px; animation: bk-fade-in 0.3s ease both; }
+.bk-feature__frame > .bk-dish__placeholder { position: absolute; inset: 0px; display: grid; place-items: center; padding: 18px; text-align: center; color: rgba(230, 216, 188, 0.4); font-size: 9px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; background: linear-gradient(150deg, rgb(58, 42, 28), rgb(36, 22, 9)); }
+.bk-detail__placeholder > .bk-dish__placeholder { position: absolute; inset: 0px; display: grid; place-items: center; padding: 18px; text-align: center; font-size: 9px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; }
+@keyframes bk-fade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes bk-dialog-in { from { opacity: 0; transform: translateY(24px) scale(0.98); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .bk-dialog-overlay, .bk-dialog, .bk-toast { animation: none; } }
+@media (max-width: 899px) {
+  .bk-nav--open { color: rgb(53, 41, 28); background: rgb(249, 242, 227); border-radius: 20px; flex-direction: column; align-items: flex-start; gap: 15px; margin: 0px; padding: 25px; display: flex; position: absolute; top: 82px; left: 20px; right: 20px; box-shadow: rgba(0, 0, 0, 0.2) 0px 15px 45px; opacity: 1; clip-path: inset(0px round 20px); }
+}
+@media (max-width: 680px) {
+  .bk-dialog__body { padding: 23px; }
+  .bk-dialog h2 { font-size: 34px; }
+  .bk-detail { grid-template-columns: 1fr; gap: 23px; }
+  .bk-detail > img, .bk-detail__placeholder { height: 230px; }
+  .bk-dialog__heading .bk-eyebrow { font-size: 7px; }
+  .bk-toast { gap: 8px; width: calc(-28px + 100vw); padding: 13px; font-size: 10px; bottom: 14px; }
+  .bk-toast button { padding-left: 7px; font-size: 9px; }
+  .bk-basket-item { grid-template-columns: 76px 1fr; gap: 14px; }
+  .bk-basket-item > img, .bk-basket-item > .bk-basket-item__placeholder { height: 76px; }
+}
