@@ -5330,3 +5330,5 @@ body {
   .bk-basket-item { grid-template-columns: 76px 1fr; gap: 14px; }
   .bk-basket-item > img, .bk-basket-item > .bk-basket-item__placeholder { height: 76px; }
 }
+.bk-button { isolation: isolate; white-space: nowrap; justify-content: center; align-items: center; overflow: hidden; text-decoration: none; }
+.bk-text-link { align-items: center; gap: 11px; display: inline-flex; }
