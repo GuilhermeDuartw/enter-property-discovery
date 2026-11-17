@@ -194,3 +194,12 @@
   --color-site-import-muted: var(--site-import-muted);
 }
 /* site-import tokens: end */
+
+/* Hide the injected Lovable branding widget ("Built with Enter" text and the
+   floating close X) on every page. The widget is added outside the app markup,
+   so this rule lives in the global stylesheet, not in site.css. */
+#lovable-badge {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
