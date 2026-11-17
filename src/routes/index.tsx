@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type RefObject } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import capturedCSS from "../styles/site.css?raw";
 import gsap from "gsap";
@@ -864,7 +864,7 @@ function OpeningIntro({ assetsReady, onFinish }: { assetsReady: boolean; onFinis
 
 // Entrance, scroll-reveal and hover motion ported from the original site.
 // The "Chocolate derretido" pin and the scroll progress bar are driven by their own components.
-function useSiteMotion(rootRef: React.RefObject<HTMLDivElement | null>, enabled: boolean) {
+function useSiteMotion(rootRef: RefObject<HTMLDivElement | null>, enabled: boolean) {
   useEffect(() => {
     const root = rootRef.current;
     if (!enabled || !root) return;
