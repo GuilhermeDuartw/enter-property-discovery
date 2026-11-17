@@ -30,19 +30,20 @@ const DISHES: Dish[] = [
   { id: "bolo-recheado", name: "Bolo Recheado", category: "Bolos", summary: "Pão de ló úmido, ganache meio amargo e doce de leite entre as camadas.", tag: "Três camadas, dois recheios", description: "Três camadas de pão de ló de cacau, ganache meio amargo e doce de leite, coberto com ganache batido. Inteiro de 1,6 kg, serve cerca de 12 fatias. A versão de encomenda tem 2,5 kg e mensagem escrita à mão. Contém ovos, leite e glúten.", sizes: [{ label: "Inteiro · 1,6 kg", price: 112 }, { label: "Encomenda · 2,5 kg", price: 168 }] },
   { id: "bolo-especial", name: "Bolo Especial", category: "Especiais", summary: "Bolo de festa com ganache espelhado, frutas vermelhas e mensagem à mão.", tag: "Para a ocasião", description: "Bolo de festa em três andares de massa, recheio escolhido por você (ganache, doce de leite ou frutas vermelhas) e acabamento com ganache espelhado, frutas frescas e mensagem escrita à mão. Encomenda com 48 horas de antecedência. Contém ovos, leite e glúten.", sizes: [{ label: "Encomenda · 3 kg", price: 168 }, { label: "Encomenda · 4,5 kg", price: 240 }] },
 ];
-const FEATURED = ["brownie-tradicional", "bolo-recheado", "brownie-nutella"];
+const FEATURED: string[] = ["brownie-tradicional", "bolo-recheado", "brownie-nutella"];
 const CATEGORIES: Array<"Tudo" | Category> = ["Tudo", "Brownies", "Bolos", "Especiais"];
 const BRL = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 const money = (value: number) => BRL.format(value);
-const dishById = (id: string) => DISHES.find((dish) => dish.id === id) ?? DISHES[0];
+const dishById = (id: string): Dish => (DISHES.find((dish) => dish.id === id) ?? DISHES[0]) as Dish;
+const sizeOf = (dish: Dish, index: number): Size => (dish.sizes[index] ?? dish.sizes[0]) as Size;
 
 function buildOrderLink(lines: BasketLine[], notes: string) {
   const items = lines.map((line) => {
     const dish = dishById(line.dishId);
-    const size = dish.sizes[line.size];
+    const size = sizeOf(dish, line.size);
     return `• ${line.qty}x ${dish.name} (${size.label}) — ${money(size.price * line.qty)}`;
   });
-  const total = lines.reduce((sum, line) => sum + dishById(line.dishId).sizes[line.size].price * line.qty, 0);
+  const total = lines.reduce((sum, line) => sum + sizeOf(dishById(line.dishId), line.size).price * line.qty, 0);
   const note = notes.trim() ? `*Observações:* ${notes.trim()}\n\n` : "";
   const text = `*Novo pedido — Doce Forno*\n\n${items.join("\n")}\n\n*Total: ${money(total)}*\n\n${note}Pode confirmar disponibilidade, prazo e entrega?`;
   return `${WHATSAPP}?text=${encodeURIComponent(text)}`;
@@ -106,7 +107,7 @@ function Index() {
   });
 
   const detail = dialog?.type === "dish" ? dishById(dialog.id) : null;
-  const total = basket.reduce((sum, line) => sum + dishById(line.dishId).sizes[line.size].price * line.qty, 0);
+  const total = basket.reduce((sum, line) => sum + sizeOf(dishById(line.dishId), line.size).price * line.qty, 0);
   return (
     <>
       <style>{capturedCSS}</style>
@@ -229,7 +230,7 @@ function Index() {
                         <button key={size.label} className={`${index === detailSize ? "is-active" : ""} ${FOCUS}`} aria-pressed={index === detailSize} onClick={() => setDetailSize(index)}>{size.label}</button>
                       ))}
                     </div>
-                    <strong style={{ marginTop: 16 }}>{money(detail.sizes[detailSize].price)}<small>{detail.sizes[detailSize].label}</small></strong>
+                    <strong style={{ marginTop: 16 }}>{money(sizeOf(detail, detailSize).price)}<small>{sizeOf(detail, detailSize).label}</small></strong>
                     <button className={`bk-button bk-button--full ${FOCUS}`} onClick={() => { addDish(detail.id, detailSize); closeDialog(); }}>Quero esse <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12h14" /><path d="M12 5v14" /></svg></button>
                     <button className={`bk-text-link ${FOCUS}`} style={{ marginTop: 10, fontSize: 11 }} onClick={() => openDialog({ type: "basket" })}>Ver minha seleção <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12h14" /><path d="m12 5 7 7-7 7" /></svg></button>
                   </div>
@@ -259,7 +260,7 @@ function Index() {
                     <div className="bk-basket-items">
                       {basket.map((line) => {
                         const dish = dishById(line.dishId);
-                        const size = dish.sizes[line.size];
+                        const size = sizeOf(dish, line.size);
                         return (
                           <div className="bk-basket-item" key={`${line.dishId}-${line.size}`}>
                             {dish.image ? <img alt={dish.name} src={dish.image} /> : <span className="bk-basket-item__placeholder" aria-hidden="true" />}
@@ -483,7 +484,7 @@ function ImportedSectionTemCoisaBoasaindoDo({ shop }: { shop: Shop }) {
               </h3>
               <p>{dish.summary}</p>
               <div className="bk-dish__bottom items-center justify-between [margin-top:auto]">
-                <strong className="whitespace-nowrap [letter-spacing:-0.04em]">{money(dish.sizes[0].price)}<small className="mt-[5px] [letter-spacing:0px]">a partir de</small></strong>
+                <strong className="whitespace-nowrap [letter-spacing:-0.04em]">{money(sizeOf(dish, 0).price)}<small className="mt-[5px] [letter-spacing:0px]">a partir de</small></strong>
                 <button className={`bk-add items-center justify-center whitespace-nowrap ${FOCUS}`} aria-label={`Adicionar ${dish.name} à seleção`} onClick={() => shop.addDish(dish.id)}>
                   <svg className="[flex-shrink:0]" xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                     <path d="M5 12h14" />
@@ -505,7 +506,7 @@ function ImportedSectionTemCoisaBoasaindoDo({ shop }: { shop: Shop }) {
 }
 
 function ImportedSectionCacauNoPontoPressa({ shop }: { shop: Shop }) {
-  const [featured, setFeatured] = useState(FEATURED[0]);
+  const [featured, setFeatured] = useState<string>("brownie-tradicional");
   const dish = dishById(featured);
   const number = String(FEATURED.indexOf(featured) + 1).padStart(2, "0");
   return (
@@ -533,7 +534,7 @@ function ImportedSectionCacauNoPontoPressa({ shop }: { shop: Shop }) {
           <span className="bk-feature__tag">{dish.tag}</span>
           <h3>{dish.name}</h3>
           <p className="max-w-[280px]">{dish.summary}</p>
-          <button className={"bk-button items-center isolate justify-center whitespace-nowrap [overflow:hidden] [&:focus-visible]:[outline:3px_solid_var(--bk-script)] [&:focus-visible]:[outline-offset:5px] [&:hover]:[box-shadow:rgba(158,102,46,0.22)_0px_7px_25px]"} onClick={() => shop.openDish(dish.id)}>Quero esse · {money(dish.sizes[0].price)}<svg className="[flex-shrink:0]" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12h14" /><path d="m12 5 7 7-7 7" /></svg></button>
+          <button className={"bk-button items-center isolate justify-center whitespace-nowrap [overflow:hidden] [&:focus-visible]:[outline:3px_solid_var(--bk-script)] [&:focus-visible]:[outline-offset:5px] [&:hover]:[box-shadow:rgba(158,102,46,0.22)_0px_7px_25px]"} onClick={() => shop.openDish(dish.id)}>Quero esse · {money(sizeOf(dish, 0).price)}<svg className="[flex-shrink:0]" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12h14" /><path d="m12 5 7 7-7 7" /></svg></button>
         </div>
       </div>
       <div className={"bk-feature__art items-center justify-center [&]:relative [min-width:0px] [@media(max-width:680px)]:self-center [@media(max-width:680px)]:aspect-square [@media(max-width:680px)]:max-w-[450px] [@media(max-width:680px)]:[margin:20px_0px_4px] [@media(max-width:680px)]:[width:100%]"}>
