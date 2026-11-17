@@ -490,7 +490,7 @@ function ImportedSectionTemCoisaBoasaindoDo({ shop }: { shop: Shop }) {
   return (
     <section className="bk-menu-section bk-section [scroll-margin-top:85px]" id="cardapio" aria-labelledby="bk-menu-heading">
       <div className="bk-menu-heading items-end gap-[30px] justify-between">
-        <div className="[translate:none] [rotate:none] [scale:none] [clip-path:none]">
+        <div className="[translate:none] [rotate:none] [scale:none]">
           <span className="bk-eyebrow">ESCOLHA PELO OLHO. VOLTE PELO SABOR.</span>
           <h2 id="bk-menu-heading">Tem coisa boa<br /><em className="[letter-spacing:-0.035em]">saindo do forno.</em></h2>
         </div>
@@ -727,4 +727,239 @@ function ImportedFooter() {
       </div>
     </footer>
   );
+}
+
+const INTRO_KEY = "doce-forno-abertura";
+const HERO_PHOTO = "/site-assets/6c6b089f6f2e8732.webp";
+const SPARKS: Array<[number, number]> = [[15, 35], [24, 65], [37, 20], [58, 16], [74, 34], [85, 56], [65, 76], [32, 78]];
+const ARROW = <><path d="M5 12h14" /><path d="m12 5 7 7-7 7" /></>;
+
+function useAssetsReady() {
+  const [ready, setReady] = useState(false);
+  useEffect(() => {
+    let cancelled = false;
+    const image = new Promise<void>((resolve) => {
+      const img = new Image();
+      img.onload = () => resolve();
+      img.onerror = () => resolve();
+      img.src = HERO_PHOTO;
+      if (img.complete) resolve();
+    });
+    const fonts = document.fonts?.ready ?? Promise.resolve();
+    const timeout = new Promise<void>((resolve) => window.setTimeout(resolve, 3500));
+    Promise.race([Promise.all([image, fonts]).then(() => undefined), timeout]).then(() => {
+      if (!cancelled) setReady(true);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+  return ready;
+}
+
+function OpeningIntro({ assetsReady, onFinish }: { assetsReady: boolean; onFinish: () => void }) {
+  const root = useRef<HTMLDivElement>(null);
+  const finished = useRef(false);
+  const played = useRef(false);
+  const ready = useRef(assetsReady);
+  const finish = useRef(onFinish);
+  ready.current = assetsReady;
+  finish.current = onFinish;
+
+  useEffect(() => {
+    const element = root.current;
+    if (!element) return;
+    const done = () => {
+      if (finished.current) return;
+      finished.current = true;
+      finish.current();
+    };
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return done();
+    const phone = window.matchMedia("(max-width: 680px)").matches;
+    const k = phone ? 0.84 : 1;
+    const ctx = gsap.context(() => {
+      const inks = element.querySelectorAll<SVGGeometryElement>(".bk-opening__ink");
+      inks.forEach((ink) => {
+        const length = ink.getTotalLength();
+        gsap.set(ink, { strokeDasharray: length, strokeDashoffset: length });
+      });
+      gsap
+        .timeline({ defaults: { ease: "power3.out" }, onComplete: () => { played.current = true; if (ready.current) done(); } })
+        .from(".bk-opening__plate", { scale: 0.68, rotation: -52, duration: 1.2 * k }, 0)
+        .to(inks, { strokeDashoffset: 0, duration: 1.05 * k, stagger: 0.045 }, 0.1 * k)
+        .from(".bk-opening__letter", { yPercent: 125, rotation: (index: number) => (index % 2 ? 9 : -9), duration: 0.85 * k, stagger: 0.055 * k }, 0.18 * k)
+        .from(".bk-opening__script", { clipPath: "inset(0 100% 0 0)", x: -20, rotation: -12, duration: 0.85 * k }, 0.62 * k)
+        .from(".bk-opening__eyebrow", { opacity: 0, y: 10, duration: 0.5 * k }, 0.4 * k)
+        .from(".bk-opening__ticket", { x: 35, y: 55, rotation: 18, opacity: 0, duration: 0.75 * k }, 0.75 * k)
+        .fromTo(".bk-opening__spark", { y: 35, scale: 0, opacity: 0 }, { y: -65, scale: 1, opacity: 0.8, stagger: 0.06 * k, duration: 0.7 * k }, 0.65 * k)
+        .to(".bk-opening__spark", { y: -115, opacity: 0, duration: 0.7, stagger: 0.025 }, 1.35 * k)
+        .to(".bk-opening__status-track", { yPercent: -33.333, duration: 0.4 }, 0.9 * k)
+        .to(".bk-opening__status-track", { yPercent: -66.666, duration: 0.4 }, 1.65 * k)
+        .to(".bk-opening__progress > i", { scaleX: 1, duration: 2.8, ease: "none" }, 0)
+        .to(".bk-opening__composition", { y: phone ? -35 : -75, scale: 0.94, opacity: 0, duration: 0.5, ease: "power2.in" }, 1.9 * k)
+        .to(".bk-opening__sheet", { clipPath: "polygon(0% 0%, 100% 0%, 100% 0%, 0% 100%)", duration: 0.72, ease: "power3.inOut" }, 2 * k)
+        .to(".bk-opening__sheet", { clipPath: "polygon(0% 0%, 100% 0%, 100% 0%, 0% 0%)", duration: 0.56, ease: "power3.out" }, 2.62 * k)
+        .to(".bk-opening__trail", { clipPath: "polygon(0% 0%, 100% 0%, 100% 0%, 0% 0%)", duration: 1.12, ease: "expo.inOut" }, 2.12 * k)
+        .to(".bk-opening__footer", { opacity: 0, y: 12, duration: 0.25 }, 2 * k);
+      gsap.delayedCall(4.8, done);
+    }, element);
+    return () => ctx.revert();
+  }, []);
+
+  useEffect(() => {
+    if (assetsReady && played.current && !finished.current) {
+      finished.current = true;
+      finish.current();
+    }
+  }, [assetsReady]);
+
+  return (
+    <div ref={root} className="bk-opening" data-testid="cinematic-intro" aria-label="Abertura da Doce Forno">
+      <div className="bk-opening__trail" />
+      <div className="bk-opening__sheet">
+        <div className="bk-opening__composition">
+          <svg className="bk-opening__plate" viewBox="0 0 540 540" fill="none" aria-hidden="true">
+            <circle className="bk-opening__ink" cx="270" cy="270" r="249" />
+            <circle className="bk-opening__ink" cx="270" cy="270" r="230" />
+            <path className="bk-opening__ink" d="M78 172Q47 154 53 124Q88 131 78 172ZM456 364Q491 351 490 321Q454 326 456 364ZM110 423L85 448M425 100L449 77M87 305L54 308M440 225L478 222" />
+            <path className="bk-opening__ink bk-opening__steam" d="M244 133C215 108 267 91 245 65M271 130C247 107 293 88 272 62M298 133C275 109 318 96 304 72" />
+          </svg>
+          <span className="bk-opening__eyebrow">O FORNO ACENDE. A CASA CHEIRA.</span>
+          <div className="bk-opening__word" aria-label="Cacau">
+            {"CACAU".split("").map((letter, index) => (
+              <span key={`${letter}-${index}`} className="bk-opening__letter" aria-hidden="true">{letter}</span>
+            ))}
+          </div>
+          <span className="bk-opening__script">no ponto.</span>
+          <div className="bk-opening__ticket">
+            <span>Doce Forno</span>
+            <small>BROWNIES E BOLOS.<br />ASSADOS TODO DIA.</small>
+            <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{ARROW}</svg>
+          </div>
+          <div className="bk-opening__sparks" aria-hidden="true">
+            {SPARKS.map(([left, top], index) => (
+              <i key={`${left}-${top}`} className="bk-opening__spark" style={{ left: `${left}%`, top: `${top}%`, animationDelay: `${index * 0.2}s` }} />
+            ))}
+          </div>
+        </div>
+        <div className="bk-opening__footer">
+          <div>
+            <div className="bk-opening__status">
+              <div className="bk-opening__status-track">
+                <span>O forno acende.</span>
+                <span>A massa descansa.</span>
+                <span>Pode chegar.</span>
+              </div>
+            </div>
+            <div className="bk-opening__progress"><i /></div>
+          </div>
+          <button className={`bk-opening__skip ${FOCUS}`} onClick={() => { if (!finished.current) { finished.current = true; finish.current(); } }}>
+            Pular abertura <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{ARROW}</svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Entrance, scroll-reveal and hover motion ported from the original site.
+// The "Chocolate derretido" pin and the scroll progress bar are driven by their own components.
+function useSiteMotion(rootRef: React.RefObject<HTMLDivElement | null>, enabled: boolean) {
+  useEffect(() => {
+    const root = rootRef.current;
+    if (!enabled || !root) return;
+    gsap.registerPlugin(ScrollTrigger);
+    let alive = true;
+    const ctx = gsap.context(() => {
+      const small = window.matchMedia("(max-width: 899px)").matches;
+      const hero = gsap.timeline({ defaults: { ease: "power4.out" } });
+      hero
+        .from(".bk-header", { y: -18, opacity: 0, duration: 0.8 }, 0.1)
+        .from(".bk-hero__line > span", { yPercent: 115, rotation: small ? 0 : 3, duration: small ? 0.85 : 1.15, stagger: 0.105 }, 0.08)
+        .from(".bk-hero__copy > p, .bk-hero__actions, .bk-hero__promises", { opacity: 0, y: small ? 14 : 25, duration: 0.75, stagger: 0.085 }, 0.42)
+        .from(".bk-hero__note", { rotation: -20, scale: 0.82, opacity: 0, duration: 0.9 }, 0.65);
+      gsap.fromTo(".bk-hero__image", { scale: small ? 1.025 : 1.055 }, { scale: 1, duration: small ? 1.35 : 1.9, ease: "power3.out" });
+      const underline = root.querySelector<SVGPathElement>(".bk-hero__line--script path");
+      if (underline) {
+        const length = underline.getTotalLength();
+        hero.fromTo(underline, { strokeDasharray: length, strokeDashoffset: length }, { strokeDashoffset: 0, duration: 1, ease: "power2.inOut" }, 0.65);
+      }
+
+      gsap
+        .timeline({ scrollTrigger: { trigger: ".bk-menu-heading", start: "top 90%", once: true }, defaults: { ease: "power3.out" } })
+        .from(".bk-menu-heading > div:first-child", { y: small ? 24 : 45, clipPath: "inset(0% 0% 100% 0%)", duration: 1.1 })
+        .from(".bk-menu-heading__aside", { x: small ? 0 : 30, y: small ? 18 : 0, opacity: 0, duration: 0.8 }, 0.25)
+        .from(".bk-categories > button", { y: 16, opacity: 0, duration: 0.5, stagger: 0.055 }, 0.4);
+      gsap.fromTo(".bk-dish__image", { clipPath: "inset(0% 0% 100% 0% round 16px)" }, { clipPath: "inset(0% 0% 0% 0% round 16px)", stagger: small ? 0.075 : 0.12, duration: 0.95, ease: "power3.inOut", clearProps: "clipPath", scrollTrigger: { trigger: ".bk-menu-grid", start: "top 90%", once: true } });
+      gsap.from(".bk-dish__body", { y: 25, opacity: 0, stagger: 0.08, duration: 0.8, scrollTrigger: { trigger: ".bk-menu-grid", start: "top 86%", once: true } });
+
+      gsap
+        .timeline({ scrollTrigger: { trigger: ".bk-feature", start: "top 87%", once: true }, defaults: { ease: "power3.out" } })
+        .from(".bk-feature__copy > .bk-eyebrow, .bk-feature__copy > h2, .bk-feature__copy > p", { y: small ? 22 : 38, opacity: 0, stagger: 0.1, duration: 0.9 })
+        .from(".bk-dish-selector > button", { y: 20, rotation: small ? 0 : -5, opacity: 0, duration: 0.55, stagger: 0.07, clearProps: "transform" }, 0.3)
+        .from(".bk-feature__frame", { scale: small ? 0.94 : 0.86, rotation: small ? 0 : -7, opacity: 0, duration: 1.15 }, 0.1)
+        .from(".bk-feature__annotation", { clipPath: "inset(0 100% 0 0)", duration: 0.85 }, 0.6);
+      gsap.to(".bk-feature__ring--one", { rotation: 55, ease: "none", scrollTrigger: { trigger: ".bk-feature", start: "top bottom", end: "bottom top", scrub: small ? true : 0.6 } });
+      gsap.to(".bk-feature__ring--two", { rotation: -35, ease: "none", scrollTrigger: { trigger: ".bk-feature", start: "top bottom", end: "bottom top", scrub: small ? true : 0.6 } });
+      gsap.fromTo(".bk-feature__number", { y: 35 }, { y: -25, ease: "none", scrollTrigger: { trigger: ".bk-feature", start: "top bottom", end: "bottom top", scrub: true } });
+      gsap.fromTo(".bk-ticker", { rotation: -2.2, y: 12 }, { rotation: -0.6, y: -10, ease: "none", scrollTrigger: { trigger: ".bk-ticker", start: "top bottom", end: "bottom top", scrub: true } });
+
+      gsap.utils.toArray<HTMLElement>(".bk-reveal").forEach((element) => {
+        const heading = element.tagName === "H2";
+        gsap.from(element, { y: small ? 20 : heading ? 38 : 26, opacity: 0, ...(heading ? { clipPath: "inset(0 0 100% 0)" } : {}), duration: heading ? 1.05 : 0.8, ease: "power3.out", scrollTrigger: { trigger: element, start: "top 93%", once: true } });
+      });
+      gsap.utils.toArray<SVGPathElement>(".bk-draw path").forEach((path) => {
+        const length = path.getTotalLength();
+        gsap.fromTo(path, { strokeDasharray: length, strokeDashoffset: length }, { strokeDashoffset: 0, duration: 1.35, ease: "power2.inOut", scrollTrigger: { trigger: path, start: "top 89%", once: true } });
+      });
+      gsap.fromTo(".bk-story__photo", { clipPath: small ? "inset(6% 5% 6% 5% round 100px)" : "inset(12% 8% 12% 8% round 180px)" }, { clipPath: "inset(0% 0% 0% 0% round 20px)", ease: "none", scrollTrigger: { trigger: ".bk-story", start: "top 90%", end: "center center", scrub: small ? true : 0.65 } });
+      gsap.fromTo(".bk-story__note", { rotation: small ? -5 : -14, y: small ? 10 : 35 }, { rotation: small ? 3 : 5, y: small ? -8 : -20, ease: "none", scrollTrigger: { trigger: ".bk-story", start: "top bottom", end: "bottom top", scrub: small ? true : 0.6 } });
+      gsap
+        .timeline({ scrollTrigger: { trigger: ".bk-visit", start: "top 88%", once: true }, defaults: { ease: "power3.out" } })
+        .from(".bk-visit__copy > .bk-eyebrow, .bk-visit__copy > h2, .bk-visit__copy > p, .bk-visit__buttons", { y: small ? 22 : 38, opacity: 0, duration: 0.9, stagger: 0.12 })
+        .from(".bk-visit__photo", { clipPath: small ? "ellipse(10% 20% at 60% 82%)" : "ellipse(10% 20% at 80% 58%)", duration: 1.2 }, 0.12);
+
+      const media = gsap.matchMedia();
+      media.add("(min-width: 900px)", () => {
+        gsap.to(".bk-hero__image", { yPercent: 5, ease: "none", scrollTrigger: { trigger: ".bk-hero", start: "top top", end: "bottom top", scrub: 0.55 } });
+        gsap.to(".bk-hero__copy", { y: -45, ease: "none", scrollTrigger: { trigger: ".bk-hero", start: "top top", end: "bottom top", scrub: 0.55 } });
+      });
+      media.add("(max-width: 767px)", () => {
+        gsap.from(".bk-scene__word", { y: 28, opacity: 0, stagger: 0.15, duration: 0.9, ease: "power3.out", scrollTrigger: { trigger: ".bk-scene h2", start: "top 88%", once: true } });
+      });
+      media.add("(hover: hover) and (pointer: fine)", () => {
+        const cleanups: Array<() => void> = [];
+        root.querySelectorAll<HTMLElement>(".bk-button").forEach((button) => {
+          const icon = button.querySelector("svg");
+          if (!icon) return;
+          const toX = gsap.quickTo(icon, "x", { duration: 0.3, ease: "power3.out" });
+          const toY = gsap.quickTo(icon, "y", { duration: 0.3, ease: "power3.out" });
+          const move = (event: PointerEvent) => {
+            const box = button.getBoundingClientRect();
+            toX((event.clientX - box.left - box.width / 2) * 0.055);
+            toY((event.clientY - box.top - box.height / 2) * 0.16);
+          };
+          const leave = () => {
+            toX(0);
+            toY(0);
+          };
+          button.addEventListener("pointermove", move);
+          button.addEventListener("pointerleave", leave);
+          cleanups.push(() => {
+            button.removeEventListener("pointermove", move);
+            button.removeEventListener("pointerleave", leave);
+          });
+        });
+        return () => cleanups.forEach((cleanup) => cleanup());
+      });
+    }, root);
+    const refresh = () => alive && ScrollTrigger.refresh();
+    document.fonts?.ready.then(refresh);
+    const timer = window.setTimeout(refresh, 450);
+    return () => {
+      alive = false;
+      window.clearTimeout(timer);
+      ctx.revert();
+    };
+  }, [enabled, rootRef]);
 }
