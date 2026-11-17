@@ -1,0 +1,299 @@
+[
+ {
+  "route": "/",
+  "viewport": "1280x900",
+  "control": "Filtro Bolos",
+  "expected": "Bolo Tradicional, Bolo Recheado",
+  "observed": [
+   "Bolo Tradicional",
+   "Bolo Recheado"
+  ],
+  "status": "pass",
+  "screenshot": "desk_filter.png"
+ },
+ {
+  "route": "/",
+  "viewport": "1280x900",
+  "control": "Quero esse (card)",
+  "expected": "toast + 1 item",
+  "observed": [
+   "Brownie Tradicional entrou na sua seleção.\nVer seleção",
+   "Abrir seleção, 1 itens"
+  ],
+  "status": "pass",
+  "screenshot": "desk_toast.png"
+ },
+ {
+  "route": "/",
+  "viewport": "1280x900",
+  "control": "Detalhe + tamanho",
+  "expected": "R$ 58,00 Caixa com 4",
+  "observed": "R$ 58,00\nCaixa com 4",
+  "status": "pass",
+  "screenshot": "desk_detail.png"
+ },
+ {
+  "route": "/",
+  "viewport": "1280x900",
+  "control": "Detalhe Quero esse",
+  "expected": "fecha e soma 2 itens",
+  "observed": "Abrir seleção, 2 itens",
+  "status": "pass",
+  "screenshot": ""
+ },
+ {
+  "route": "/",
+  "viewport": "1280x900",
+  "control": "Carrinho + quantidade",
+  "expected": "Total R$ 82,00 (2x12 + 58) e link WhatsApp",
+  "observed": [
+   "R$ 82,00",
+   "https://wa.me/5511999999999?text=*Novo%20pedido%20%E2%80%94%20Doce%20Forno*%0A%0A%E2%80%A2"
+  ],
+  "status": "pass",
+  "screenshot": "desk_cart.png"
+ },
+ {
+  "route": "/",
+  "viewport": "1280x900",
+  "control": "Escape fecha carrinho",
+  "expected": "fechado",
+  "observed": 0,
+  "status": "pass",
+  "screenshot": ""
+ },
+ {
+  "route": "/",
+  "viewport": "1280x900",
+  "control": "Destaque 02",
+  "expected": "Bolo Recheado / 02 / R$ 112,00",
+  "observed": [
+   "Bolo Recheado",
+   "02",
+   "Quero esse · R$ 112,00"
+  ],
+  "status": "pass",
+  "screenshot": "desk_feature.png"
+ },
+ {
+  "route": "/",
+  "viewport": "1280x900",
+  "control": "Destaque Quero esse",
+  "expected": "abre detalhe Bolo Recheado",
+  "observed": "Bolo Recheado",
+  "status": "pass",
+  "screenshot": ""
+ },
+ {
+  "route": "/",
+  "viewport": "1280x900",
+  "control": "Clique fora fecha",
+  "expected": "fechado",
+  "observed": 0,
+  "status": "pass",
+  "screenshot": ""
+ },
+ {
+  "route": "/",
+  "viewport": "1280x900",
+  "control": "FAQ",
+  "expected": "abre",
+  "observed": true,
+  "status": "pass",
+  "screenshot": ""
+ },
+ {
+  "route": "/",
+  "viewport": "1280x900",
+  "control": "Montar seleção",
+  "expected": "abre carrinho",
+  "observed": 1,
+  "status": "pass",
+  "screenshot": ""
+ },
+ {
+  "route": "/",
+  "viewport": "1280x900",
+  "control": "Nav A casa",
+  "expected": "rola até #casa",
+  "observed": [
+   "http://localhost:8080/#casa",
+   85
+  ],
+  "status": "pass",
+  "screenshot": ""
+ },
+ {
+  "route": "/",
+  "viewport": "1280x900",
+  "control": "Pedir pelo WhatsApp",
+  "expected": "wa.me",
+  "observed": "https://wa.me/5511999999999?te",
+  "status": "pass",
+  "screenshot": ""
+ },
+ {
+  "route": "/",
+  "viewport": "1280x900",
+  "control": "Voltar ao topo",
+  "expected": "scrollY 0",
+  "observed": 0,
+  "status": "pass",
+  "screenshot": ""
+ },
+ {
+  "route": "/",
+  "viewport": "390x844",
+  "control": "Filtro Bolos",
+  "expected": "Bolo Tradicional, Bolo Recheado",
+  "observed": [
+   "Bolo Tradicional",
+   "Bolo Recheado"
+  ],
+  "status": "pass",
+  "screenshot": "phone_filter.png"
+ },
+ {
+  "route": "/",
+  "viewport": "390x844",
+  "control": "Quero esse (card)",
+  "expected": "toast + 1 item",
+  "observed": [
+   "Brownie Tradicional entrou na sua seleção.\nVer seleção",
+   "Abrir seleção, 1 itens"
+  ],
+  "status": "pass",
+  "screenshot": "phone_toast.png"
+ },
+ {
+  "route": "/",
+  "viewport": "390x844",
+  "control": "Detalhe + tamanho",
+  "expected": "R$ 58,00 Caixa com 4",
+  "observed": "R$ 58,00\nCaixa com 4",
+  "status": "pass",
+  "screenshot": "phone_detail.png"
+ },
+ {
+  "route": "/",
+  "viewport": "390x844",
+  "control": "Detalhe Quero esse",
+  "expected": "fecha e soma 2 itens",
+  "observed": "Abrir seleção, 2 itens",
+  "status": "pass",
+  "screenshot": ""
+ },
+ {
+  "route": "/",
+  "viewport": "390x844",
+  "control": "Carrinho + quantidade",
+  "expected": "Total R$ 82,00 (2x12 + 58) e link WhatsApp",
+  "observed": [
+   "R$ 82,00",
+   "https://wa.me/5511999999999?text=*Novo%20pedido%20%E2%80%94%20Doce%20Forno*%0A%0A%E2%80%A2"
+  ],
+  "status": "pass",
+  "screenshot": "phone_cart.png"
+ },
+ {
+  "route": "/",
+  "viewport": "390x844",
+  "control": "Escape fecha carrinho",
+  "expected": "fechado",
+  "observed": 0,
+  "status": "pass",
+  "screenshot": ""
+ },
+ {
+  "route": "/",
+  "viewport": "390x844",
+  "control": "Destaque 02",
+  "expected": "Bolo Recheado / 02 / R$ 112,00",
+  "observed": [
+   "Bolo Recheado",
+   "02",
+   "Quero esse · R$ 112,00"
+  ],
+  "status": "pass",
+  "screenshot": "phone_feature.png"
+ },
+ {
+  "route": "/",
+  "viewport": "390x844",
+  "control": "Destaque Quero esse",
+  "expected": "abre detalhe Bolo Recheado",
+  "observed": "Bolo Recheado",
+  "status": "pass",
+  "screenshot": ""
+ },
+ {
+  "route": "/",
+  "viewport": "390x844",
+  "control": "Clique fora fecha",
+  "expected": "fechado",
+  "observed": 0,
+  "status": "pass",
+  "screenshot": ""
+ },
+ {
+  "route": "/",
+  "viewport": "390x844",
+  "control": "FAQ",
+  "expected": "abre",
+  "observed": true,
+  "status": "pass",
+  "screenshot": ""
+ },
+ {
+  "route": "/",
+  "viewport": "390x844",
+  "control": "Montar seleção",
+  "expected": "abre carrinho",
+  "observed": 1,
+  "status": "pass",
+  "screenshot": ""
+ },
+ {
+  "route": "/",
+  "viewport": "390x844",
+  "control": "Menu celular",
+  "expected": "abre com links",
+  "observed": [
+   true,
+   "true"
+  ],
+  "status": "pass",
+  "screenshot": "phone_menu.png"
+ },
+ {
+  "route": "/",
+  "viewport": "390x844",
+  "control": "Link Cardápio no menu",
+  "expected": "fecha e rola até #cardapio",
+  "observed": [
+   "bk-nav  items-center",
+   835,
+   "http://localhost:8080/#cardapio"
+  ],
+  "status": "pass",
+  "screenshot": ""
+ },
+ {
+  "route": "/",
+  "viewport": "390x844",
+  "control": "Pedir pelo WhatsApp",
+  "expected": "wa.me",
+  "observed": "https://wa.me/5511999999999?te",
+  "status": "pass",
+  "screenshot": ""
+ },
+ {
+  "route": "/",
+  "viewport": "390x844",
+  "control": "Voltar ao topo",
+  "expected": "scrollY 0",
+  "observed": 0,
+  "status": "pass",
+  "screenshot": ""
+ }
+]
