@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import capturedCSS from "../styles/site.css?raw";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -115,14 +117,46 @@ function Index() {
     return () => window.removeEventListener("keydown", onKey);
   });
 
+  const rootRef = useRef<HTMLDivElement>(null);
+  const [intro, setIntro] = useState(true);
+  const [motionReady, setMotionReady] = useState(false);
+  const assetsReady = useAssetsReady();
+  useEffect(() => {
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    let show = !reduced;
+    try {
+      if (show && new URLSearchParams(window.location.search).get("abertura") !== "1") show = sessionStorage.getItem(INTRO_KEY) !== "seen";
+    } catch {
+      show = false;
+    }
+    if (!show) setIntro(false);
+    setMotionReady(!reduced);
+  }, []);
+  useEffect(() => {
+    if (!intro) return;
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previous;
+    };
+  }, [intro]);
+  const finishIntro = () => {
+    try {
+      sessionStorage.setItem(INTRO_KEY, "seen");
+    } catch {}
+    setIntro(false);
+  };
+  useSiteMotion(rootRef, motionReady && !intro);
+
   const detail = dialog?.type === "dish" ? dishById(dialog.id) : null;
   const total = basket.reduce((sum, line) => sum + sizeOf(dishById(line.dishId), line.size).price * line.qty, 0);
   return (
     <>
       <style>{capturedCSS}</style>
       <div id="root">
-        <div className={"bk-experience bk-motion-enabled isolate [&]:relative [overflow:clip] [width:100%]"}>
+        <div ref={rootRef} className={"bk-experience bk-motion-enabled isolate [&]:relative [overflow:clip] [width:100%]"}>
           <ScrollProgress />
+          {intro && <OpeningIntro assetsReady={assetsReady} onFinish={finishIntro} />}
           <a className={"bk-skip p-[12px] no-underline top-[8px] [z-index:150] [&:focus-visible]:[outline:3px_solid_var(--bk-script)] [&:focus-visible]:[outline-offset:5px]"} href="#cardapio">Ir para o cardápio</a>
           <ImportedHeader shop={shop} menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
           <main>
@@ -596,14 +630,14 @@ function ImportedSectionUmPoucoDeCacau() {
         <div className="bk-story__photo [overflow:hidden]">
           <img className="object-cover [width:100%]" alt="Brownies em uma mesa de madeira, com cacau e flor de sal ao redor" loading="lazy" decoding="async" src="/site-assets/6c6b089f6f2e8732.webp" />
         </div>
-        <div className={"bk-story__note [&]:absolute [box-shadow:rgba(44,30,17,0.07)_5px_9px] [translate:none] [rotate:none] [scale:none]"} aria-hidden="true">assado devagar<svg className="fill-none w-[90px] [flex-shrink:0] [margin:5px_0px_0px_45px] [stroke:currentcolor] [stroke-linecap:round] [stroke-width:2px]" viewBox="0 0 100 46"><path className="[stroke-dashoffset:0px] [stroke-dasharray:130.926]" d="M4 8Q54 2 88 24M88 24L66 20M88 24L74 40" /></svg></div>
+        <div className={"bk-story__note [&]:absolute [box-shadow:rgba(44,30,17,0.07)_5px_9px] [translate:none] [rotate:none] [scale:none]"} aria-hidden="true">assado devagar<svg className="bk-draw fill-none w-[90px] [flex-shrink:0] [margin:5px_0px_0px_45px] [stroke:currentcolor] [stroke-linecap:round] [stroke-width:2px]" viewBox="0 0 100 46"><path d="M4 8Q54 2 88 24M88 24L66 20M88 24L74 40" /></svg></div>
       </div>
       <div className="bk-story__copy [@media(max-width:680px)]:[width:100%]">
         <span className="bk-eyebrow">A NOSSA IDEIA DE CONFEITARIA</span>
-        <h2 className="[translate:none] [rotate:none] [scale:none]" id="bk-story-title">Um pouco de cacau.<br /><em className="[letter-spacing:-0.035em]">Um tanto de afeto.</em></h2>
-        <p className="bk-story__lead [translate:none] [rotate:none] [scale:none]">Uma casa para quem acredita que doce também é um jeito de cuidar.</p>
-        <p className="[translate:none] [rotate:none] [scale:none]">A Doce Forno começou numa cozinha pequena, com uma forma de 20 cm e a teimosia de assar todo dia. Hoje são duas fornadas diárias, sempre em pequenas quantidades, porque brownie bom não espera a semana inteira.</p>
-        <p className="[translate:none] [rotate:none] [scale:none]">Cacau de origem, manteiga de verdade, ovos de galinha caipira e o tempo que a massa precisa para descansar na geladeira antes de ir ao forno. Nenhum atalho: é isso que separa um brownie de um bolo de chocolate qualquer.</p>
+        <h2 className="bk-reveal [translate:none] [rotate:none] [scale:none]" id="bk-story-title">Um pouco de cacau.<br /><em className="[letter-spacing:-0.035em]">Um tanto de afeto.</em></h2>
+        <p className="bk-story__lead bk-reveal [translate:none] [rotate:none] [scale:none]">Uma casa para quem acredita que doce também é um jeito de cuidar.</p>
+        <p className="bk-reveal [translate:none] [rotate:none] [scale:none]">A Doce Forno começou numa cozinha pequena, com uma forma de 20 cm e a teimosia de assar todo dia. Hoje são duas fornadas diárias, sempre em pequenas quantidades, porque brownie bom não espera a semana inteira.</p>
+        <p className="bk-reveal [translate:none] [rotate:none] [scale:none]">Cacau de origem, manteiga de verdade, ovos de galinha caipira e o tempo que a massa precisa para descansar na geladeira antes de ir ao forno. Nenhum atalho: é isso que separa um brownie de um bolo de chocolate qualquer.</p>
         <a className={"bk-button items-center isolate justify-center mt-[25px] no-underline whitespace-nowrap [overflow:hidden] [&:focus-visible]:[outline:3px_solid_var(--bk-script)] [&:focus-visible]:[outline-offset:5px] [&:hover]:[box-shadow:rgba(158,102,46,0.22)_0px_7px_25px]"} href="#cardapio">Encontre o seu doce <svg className="[flex-shrink:0]" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12h14" /><path d="m12 5 7 7-7 7" /></svg></a>
         <div className="bk-story__signature items-center"><svg className="[flex-shrink:0]" width="46" height="14" viewBox="0 0 46 14" fill="none" aria-hidden="true"><path d="M1 9c8-7 14 4 22-2s12 5 22-4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" /></svg>Doce Forno</div>
       </div>
@@ -640,7 +674,7 @@ function ImportedSectionSemDVidaCom() {
     <section className="bk-faq bk-section [scroll-margin-top:85px]" id="duvidas" aria-labelledby="bk-faq-title">
       <div>
         <span className="bk-eyebrow">ANTES DE PEDIR</span>
-        <h2 className="[translate:none] [rotate:none] [scale:none] [clip-path:none]" id="bk-faq-title">Sem dúvida.<br /><em className="[letter-spacing:-0.035em]">Com vontade.</em></h2>
+        <h2 className="bk-reveal [translate:none] [rotate:none] [scale:none]" id="bk-faq-title">Sem dúvida.<br /><em className="[letter-spacing:-0.035em]">Com vontade.</em></h2>
       </div>
       <div>
         <details className="[interpolate-size:allow-keywords]">
