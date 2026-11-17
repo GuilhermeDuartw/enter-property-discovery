@@ -487,6 +487,18 @@ function ImportedSectionBrownieBomFeitoComcalma() {
 function ImportedSectionTemCoisaBoasaindoDo({ shop }: { shop: Shop }) {
   const [filter, setFilter] = useState<"Tudo" | Category>("Tudo");
   const visible = DISHES.filter((dish) => filter === "Tudo" || dish.category === filter);
+  const tabs = useRef<Partial<Record<string, HTMLButtonElement | null>>>({});
+  const [pill, setPill] = useState({ left: 0, top: 0, width: 0, height: 0 });
+  useLayoutEffect(() => {
+    const measure = () => {
+      const tab = tabs.current[filter];
+      if (tab) setPill({ left: tab.offsetLeft, top: tab.offsetTop, width: tab.offsetWidth, height: tab.offsetHeight });
+    };
+    measure();
+    window.addEventListener("resize", measure);
+    document.fonts?.ready.then(measure);
+    return () => window.removeEventListener("resize", measure);
+  }, [filter]);
   return (
     <section className="bk-menu-section bk-section [scroll-margin-top:85px]" id="cardapio" aria-labelledby="bk-menu-heading">
       <div className="bk-menu-heading items-end gap-[30px] justify-between">
@@ -500,8 +512,9 @@ function ImportedSectionTemCoisaBoasaindoDo({ shop }: { shop: Shop }) {
         </div>
       </div>
       <div className={"bk-categories [&]:relative [@media(max-width:680px)]:whitespace-nowrap [@media(max-width:680px)]:[overflow-x:auto] [@media(max-width:680px)]:[scrollbar-width:none]"} role="tablist" aria-label="Categorias do cardápio">
+        <span className="bk-category-pill" aria-hidden="true" style={{ top: pill.top, left: 0, width: pill.width, height: pill.height, transform: `translateX(${pill.left}px)`, opacity: pill.width ? 1 : 0 }} />
         {CATEGORIES.map((category) => (
-          <button key={category} className={`${filter === category ? "is-active " : ""}isolate [&]:relative ${FOCUS} [translate:none] [rotate:none] [scale:none]`} role="tab" aria-selected={filter === category} onClick={() => setFilter(category)}>{filter === category && <span className={"bk-category-pill [&]:absolute [inset:0px] [z-index:-1]"} />}{category}</button>
+          <button key={category} ref={(node) => { tabs.current[category] = node; }} className={`${filter === category ? "is-active " : ""}isolate [&]:relative ${FOCUS} [translate:none] [rotate:none] [scale:none]`} role="tab" aria-selected={filter === category} onClick={() => setFilter(category)}>{category}</button>
         ))}
       </div>
       <div className="bk-menu-grid items-stretch [@media(max-width:680px)]:[overflow:auto_hidden] [@media(max-width:680px)]:[scroll-padding-inline:23px] [@media(max-width:680px)]:[scroll-snap-type:x_mandatory] [@media(max-width:680px)]:[scrollbar-color:rgb(189,155,98)_transparent] [@media(max-width:680px)]:[scrollbar-width:thin]">
