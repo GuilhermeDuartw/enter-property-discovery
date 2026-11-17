@@ -28,3 +28,6 @@ use the editor.
   own key and store it in Secrets.
 - **Secrets.** Lovable manages them. Do not put secret values in the repo.
 <!-- LOVABLE:END -->
+
+## Project rules
+- The home page is an imported website clone: keep its markup, menu data and shop state (filters, cart, popups) in `src/routes/index.tsx`, and its source styles in `src/styles/site.css` (scoped under `.bk-experience`, so popups must render inside that wrapper to get the site colors).
