@@ -23,3 +23,7 @@ npm i
 npm run dev
 ```
 
+
+## Documentação
+
+Como o código está organizado e onde ligar um backend PHP: [docs/GUIA-BACKEND-PHP.md](docs/GUIA-BACKEND-PHP.md)
