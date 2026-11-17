@@ -5264,24 +5264,12 @@ body {
 
 
 
-@media (min-width:768px) {
-  [data-site-import-responsive="355"] {
-    max-width: calc(1.000000 * 100vw + -15.0000px) !important;
-    width: calc(1.000000 * 100vw + -15.0000px) !important;
-  }
-}
-
-@media (min-width:768px) {
-  [data-site-import-responsive="354"] {
-    width: calc(1.000000 * 100vw + -15.0000px) !important;
-  }
-}
 
 @media (max-width:767px) {
   [data-site-import-responsive="355"] {
     inset: 0px !important;
     max-width: none !important;
-    width: 390px !important;
+    width: 100% !important;
     max-height: none !important;
     height: 690px !important;
     transform: none !important;

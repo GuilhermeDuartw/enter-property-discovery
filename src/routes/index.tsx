@@ -202,99 +202,99 @@ function Index() {
             <ImportedSectionSemDVidaCom />
           </main>
           <ImportedFooter />
-        </div>
-      </div>
-      {dialog && (
-        <div className="bk-dialog-overlay" onClick={(event) => event.target === event.currentTarget && closeDialog()}>
-          {detail ? (
-            <div className="bk-dialog bk-dialog--wide" role="dialog" aria-modal="true" aria-labelledby="bk-dish-title">
-              <div className="bk-dialog__body">
-                <div className="bk-dialog__heading">
-                  <span className="bk-eyebrow">DOCE FORNO · CARDÁPIO</span>
-                  <button className={`bk-icon-button ${FOCUS}`} aria-label="Fechar janela" autoFocus onClick={closeDialog}>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg>
-                  </button>
-                </div>
-                <h2 id="bk-dish-title">{detail.name}</h2>
-                <div className="bk-detail">
-                  {detail.image ? (
-                    <img alt={detail.name} src={detail.image} style={{ objectPosition: "center center" }} />
-                  ) : (
-                    <div className="bk-detail__placeholder"><span className="bk-dish__placeholder">Foto em produção</span></div>
-                  )}
-                  <div>
-                    <span className="bk-feature__tag" style={{ color: "rgb(138, 103, 64)" }}>{detail.tag}</span>
-                    <p>{detail.description}</p>
-                    <div className="bk-sizes" role="group" aria-label="Escolha o tamanho">
-                      {detail.sizes.map((size, index) => (
-                        <button key={size.label} className={`${index === detailSize ? "is-active" : ""} ${FOCUS}`} aria-pressed={index === detailSize} onClick={() => setDetailSize(index)}>{size.label}</button>
-                      ))}
+          {dialog && (
+            <div className="bk-dialog-overlay" onClick={(event) => event.target === event.currentTarget && closeDialog()}>
+              {detail ? (
+                <div className="bk-dialog bk-dialog--wide" role="dialog" aria-modal="true" aria-labelledby="bk-dish-title">
+                  <div className="bk-dialog__body">
+                    <div className="bk-dialog__heading">
+                      <span className="bk-eyebrow">DOCE FORNO · CARDÁPIO</span>
+                      <button className={`bk-icon-button ${FOCUS}`} aria-label="Fechar janela" autoFocus onClick={closeDialog}>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg>
+                      </button>
                     </div>
-                    <strong style={{ marginTop: 16 }}>{money(sizeOf(detail, detailSize).price)}<small>{sizeOf(detail, detailSize).label}</small></strong>
-                    <button className={`bk-button bk-button--full ${FOCUS}`} onClick={() => { addDish(detail.id, detailSize); closeDialog(); }}>Quero esse <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12h14" /><path d="M12 5v14" /></svg></button>
-                    <button className={`bk-text-link ${FOCUS}`} style={{ marginTop: 10, fontSize: 11 }} onClick={() => openDialog({ type: "basket" })}>Ver minha seleção <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12h14" /><path d="m12 5 7 7-7 7" /></svg></button>
+                    <h2 id="bk-dish-title">{detail.name}</h2>
+                    <div className="bk-detail">
+                      {detail.image ? (
+                        <img alt={detail.name} src={detail.image} style={{ objectPosition: "center center" }} />
+                      ) : (
+                        <div className="bk-detail__placeholder"><span className="bk-dish__placeholder">Foto em produção</span></div>
+                      )}
+                      <div>
+                        <span className="bk-feature__tag" style={{ color: "rgb(138, 103, 64)" }}>{detail.tag}</span>
+                        <p>{detail.description}</p>
+                        <div className="bk-sizes" role="group" aria-label="Escolha o tamanho">
+                          {detail.sizes.map((size, index) => (
+                            <button key={size.label} className={`${index === detailSize ? "is-active" : ""} ${FOCUS}`} aria-pressed={index === detailSize} onClick={() => setDetailSize(index)}>{size.label}</button>
+                          ))}
+                        </div>
+                        <strong style={{ marginTop: 16 }}>{money(sizeOf(detail, detailSize).price)}<small>{sizeOf(detail, detailSize).label}</small></strong>
+                        <button className={`bk-button bk-button--full ${FOCUS}`} onClick={() => { addDish(detail.id, detailSize); closeDialog(); }}>Quero esse <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12h14" /><path d="M12 5v14" /></svg></button>
+                        <button className={`bk-text-link ${FOCUS}`} style={{ marginTop: 10, fontSize: 11 }} onClick={() => openDialog({ type: "basket" })}>Ver minha seleção <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12h14" /><path d="m12 5 7 7-7 7" /></svg></button>
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </div>
-          ) : (
-            <div className="bk-dialog" role="dialog" aria-modal="true" aria-labelledby="bk-basket-title">
-              <div className="bk-dialog__body">
-                <div className="bk-dialog__heading">
-                  <span className="bk-eyebrow">DOCE FORNO · SELEÇÃO</span>
-                  <button className={`bk-icon-button ${FOCUS}`} aria-label="Fechar janela" autoFocus onClick={closeDialog}>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg>
-                  </button>
-                </div>
-                <h2 id="bk-basket-title">Sua seleção</h2>
-                {basket.length === 0 ? (
-                  <div className="bk-empty">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M16 10a4 4 0 0 1-8 0" /><path d="M3.103 6.034h17.794" /><path d="M3.4 5.467a2 2 0 0 0-.4 1.2V20a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6.667a2 2 0 0 0-.4-1.2l-2-2.667A2 2 0 0 0 17 2H7a2 2 0 0 0-1.6.8z" /></svg>
-                    <h3>Ainda está vazia.</h3>
-                    <p>Escolha um brownie, um bolo ou uma caixa para dividir — a seleção fica aqui enquanto você navega.</p>
-                    <button className={`bk-button ${FOCUS}`} onClick={() => { setDialog(null); document.getElementById("cardapio")?.scrollIntoView({ behavior: "smooth" }); }}>Ver o cardápio <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12h14" /><path d="m12 5 7 7-7 7" /></svg></button>
-                  </div>
-                ) : (
-                  <>
-                    <p className="bk-dialog__intro">Confira os itens, escolha as quantidades e finalize pelo WhatsApp para combinar prazo e entrega.</p>
-                    <div className="bk-basket-items">
-                      {basket.map((line) => {
-                        const dish = dishById(line.dishId);
-                        const size = sizeOf(dish, line.size);
-                        return (
-                          <div className="bk-basket-item" key={`${line.dishId}-${line.size}`}>
-                            {dish.image ? <img alt={dish.name} src={dish.image} /> : <span className="bk-basket-item__placeholder" aria-hidden="true" />}
-                            <div>
-                              <h3>{dish.name}</h3>
-                              <span>{size.label} · {money(size.price)}</span>
-                              <div className="bk-quantity">
-                                <button className={FOCUS} aria-label={`Diminuir ${dish.name}`} onClick={() => changeQty(line, -1)}><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12h14" /></svg></button>
-                                <span>{line.qty}</span>
-                                <button className={FOCUS} aria-label={`Aumentar ${dish.name}`} onClick={() => changeQty(line, 1)}><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12h14" /><path d="M12 5v14" /></svg></button>
+              ) : (
+                <div className="bk-dialog" role="dialog" aria-modal="true" aria-labelledby="bk-basket-title">
+                  <div className="bk-dialog__body">
+                    <div className="bk-dialog__heading">
+                      <span className="bk-eyebrow">DOCE FORNO · SELEÇÃO</span>
+                      <button className={`bk-icon-button ${FOCUS}`} aria-label="Fechar janela" autoFocus onClick={closeDialog}>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg>
+                      </button>
+                    </div>
+                    <h2 id="bk-basket-title">Sua seleção</h2>
+                    {basket.length === 0 ? (
+                      <div className="bk-empty">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M16 10a4 4 0 0 1-8 0" /><path d="M3.103 6.034h17.794" /><path d="M3.4 5.467a2 2 0 0 0-.4 1.2V20a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6.667a2 2 0 0 0-.4-1.2l-2-2.667A2 2 0 0 0 17 2H7a2 2 0 0 0-1.6.8z" /></svg>
+                        <h3>Ainda está vazia.</h3>
+                        <p>Escolha um brownie, um bolo ou uma caixa para dividir — a seleção fica aqui enquanto você navega.</p>
+                        <button className={`bk-button ${FOCUS}`} onClick={() => { setDialog(null); document.getElementById("cardapio")?.scrollIntoView({ behavior: "smooth" }); }}>Ver o cardápio <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12h14" /><path d="m12 5 7 7-7 7" /></svg></button>
+                      </div>
+                    ) : (
+                      <>
+                        <p className="bk-dialog__intro">Confira os itens, escolha as quantidades e finalize pelo WhatsApp para combinar prazo e entrega.</p>
+                        <div className="bk-basket-items">
+                          {basket.map((line) => {
+                            const dish = dishById(line.dishId);
+                            const size = sizeOf(dish, line.size);
+                            return (
+                              <div className="bk-basket-item" key={`${line.dishId}-${line.size}`}>
+                                {dish.image ? <img alt={dish.name} src={dish.image} /> : <span className="bk-basket-item__placeholder" aria-hidden="true" />}
+                                <div>
+                                  <h3>{dish.name}</h3>
+                                  <span>{size.label} · {money(size.price)}</span>
+                                  <div className="bk-quantity">
+                                    <button className={FOCUS} aria-label={`Diminuir ${dish.name}`} onClick={() => changeQty(line, -1)}><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12h14" /></svg></button>
+                                    <span>{line.qty}</span>
+                                    <button className={FOCUS} aria-label={`Aumentar ${dish.name}`} onClick={() => changeQty(line, 1)}><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12h14" /><path d="M12 5v14" /></svg></button>
+                                  </div>
+                                </div>
                               </div>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                    <label className="bk-field">Observações<textarea placeholder="Recheio preferido, mensagem no bolo, data de retirada…" value={notes} onChange={(event) => setNotes(event.target.value)} /></label>
-                    <div className="bk-total"><span>Total</span><strong>{money(total)}</strong></div>
-                    <a className={`bk-button bk-button--full ${FOCUS}`} href={buildOrderLink(basket, notes)} target="_blank" rel="noreferrer">Finalizar pelo WhatsApp <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M2.992 16.342a2 2 0 0 1 .094 1.167l-1.065 3.29a1 1 0 0 0 1.236 1.168l3.413-.998a2 2 0 0 1 1.099.092 10 10 0 1 0-4.777-4.719" /></svg></a>
-                    <p className="bk-local-note">O pedido é enviado pelo WhatsApp com este resumo. Pagamento, prazo e entrega são combinados por lá.</p>
-                  </>
-                )}
-              </div>
+                            );
+                          })}
+                        </div>
+                        <label className="bk-field">Observações<textarea placeholder="Recheio preferido, mensagem no bolo, data de retirada…" value={notes} onChange={(event) => setNotes(event.target.value)} /></label>
+                        <div className="bk-total"><span>Total</span><strong>{money(total)}</strong></div>
+                        <a className={`bk-button bk-button--full ${FOCUS}`} href={buildOrderLink(basket, notes)} target="_blank" rel="noreferrer">Finalizar pelo WhatsApp <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M2.992 16.342a2 2 0 0 1 .094 1.167l-1.065 3.29a1 1 0 0 0 1.236 1.168l3.413-.998a2 2 0 0 1 1.099.092 10 10 0 1 0-4.777-4.719" /></svg></a>
+                        <p className="bk-local-note">O pedido é enviado pelo WhatsApp com este resumo. Pagamento, prazo e entrega são combinados por lá.</p>
+                      </>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+          {toast && (
+            <div className="bk-toast" role="status" style={{ transform: "translateX(-50%)" }}>
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10" /><path d="m9 12 2 2 4-4" /></svg>
+              <span>{toast} entrou na sua seleção.</span>
+              <button className={FOCUS} onClick={() => { setToast(null); openDialog({ type: "basket" }); }}>Ver seleção <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12h14" /><path d="m12 5 7 7-7 7" /></svg></button>
             </div>
           )}
         </div>
-      )}
-      {toast && (
-        <div className="bk-toast" role="status" style={{ transform: "translateX(-50%)" }}>
-          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10" /><path d="m9 12 2 2 4-4" /></svg>
-          <span>{toast} entrou na sua seleção.</span>
-          <button className={FOCUS} onClick={() => { setToast(null); openDialog({ type: "basket" }); }}>Ver seleção <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12h14" /><path d="m12 5 7 7-7 7" /></svg></button>
-        </div>
-      )}
+      </div>
     </>
   );
 }
@@ -324,7 +324,7 @@ function ChocolateScene() {
   const [progress, setProgress] = useState(0);
   const [pinned, setPinned] = useState(true);
   useEffect(() => {
-    const phone = window.matchMedia("(max-width: 680px)");
+    const phone = window.matchMedia("(max-width: 767px)");
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
     const update = () => {
       const canPin = !phone.matches && !reduced.matches;
@@ -342,7 +342,7 @@ function ChocolateScene() {
     };
   }, []);
   return (
-    <div ref={wrapper} className={"[&]:relative [width:100%] [height:calc(max(min(820px,100svh),660px)+561px)] [@media(max-width:680px)]:[height:auto]"}>
+    <div ref={wrapper} className={"[&]:relative [width:100%] [height:calc(max(min(820px,100svh),660px)+561px)] [@media(max-width:767px)]:[height:auto]"}>
       <ImportedSectionChocolatederretido progress={progress} pinned={pinned} />
     </div>
   );
