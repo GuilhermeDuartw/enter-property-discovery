@@ -20,17 +20,47 @@ export const Route = createFileRoute("/")({
 });
 
 
+// =====================================================================
+// GUIA RÁPIDO DESTE ARQUIVO (leia docs/GUIA-BACKEND-PHP.md para detalhes)
+//
+//  1. CONFIGURAÇÕES E DADOS ......... WhatsApp, fotos, lista de produtos
+//  2. CARRINHO E PEDIDO ............. monta a mensagem do WhatsApp
+//  3. Index() ....................... a página inteira + estado da loja
+//  4. Seções da página .............. Imported* (cabeçalho, cardápio...)
+//  5. Abertura animada .............. OpeningIntro
+//  6. Animações de rolagem .......... useSiteMotion (GSAP)
+//
+// Para ligar um backend PHP, os pontos principais são a lista DISHES
+// (produtos) e a função buildOrderLink (pedido). Comentários marcados
+// com "BACKEND:" mostram onde mexer.
+// =====================================================================
+
+// ---------------------------------------------------------------------
+// 1. CONFIGURAÇÕES E DADOS
+// ---------------------------------------------------------------------
+// FOCUS: classes de contorno quando o botão é focado pelo teclado.
 const FOCUS = "[&:focus-visible]:[outline:3px_solid_var(--bk-script)] [&:focus-visible]:[outline-offset:5px]";
+// Número do WhatsApp que recebe os pedidos (formato: 55 + DDD + número).
 const WHATSAPP = "https://wa.me/5511999999999";
 const BROWNIE_PHOTO = "/site-assets/b88075489669e69a.webp";
 const PENDING_GRADIENT = "linear-gradient(150deg, rgb(58, 42, 28), rgb(36, 22, 9))";
 
+// Formatos dos dados (equivalem a arrays associativos no PHP):
+//  Category    -> categoria do produto
+//  Size        -> um tamanho com preço, ex: { label: "Unidade", price: 12 }
+//  Dish        -> um produto completo
+//  BasketLine  -> uma linha do carrinho: produto + índice do tamanho + quantidade
+//  DialogState -> qual janela está aberta (produto, carrinho ou nenhuma)
 type Category = "Brownies" | "Bolos" | "Especiais";
 type Size = { label: string; price: number };
 type Dish = { id: string; name: string; category: Category; summary: string; tag: string; description: string; image?: string; sizes: Size[] };
 type BasketLine = { dishId: string; size: number; qty: number };
 type DialogState = { type: "dish"; id: string } | { type: "basket" } | null;
 
+// LISTA DE PRODUTOS (o cardápio inteiro).
+// BACKEND: hoje está fixa aqui. Com PHP, este mesmo formato pode vir de um
+// endpoint (ex: GET /api/produtos.php devolvendo JSON). Os preços são em reais
+// (número, sem "R$"). "image" é opcional; sem ela aparece "Foto em produção".
 const DISHES: Dish[] = [
   { id: "brownie-tradicional", name: "Brownie Tradicional", category: "Brownies", image: BROWNIE_PHOTO, summary: "Cacau 70%, manteiga e o ponto exato: firme na borda, úmido no meio.", tag: "Casquinha fina, coração úmido", description: "Massa de cacau 70% com manteiga, ovos e açúcar mascavo. Casquinha fina por cima e centro úmido. Uma unidade serve uma pessoa. Contém ovos, leite e glúten.", sizes: [{ label: "Unidade", price: 12 }, { label: "Caixa com 4", price: 44 }, { label: "Caixa com 9", price: 92 }] },
   { id: "brownie-recheado", name: "Brownie Recheado", category: "Brownies", summary: "Recheio generoso de doce de leite e uma pitada de flor de sal.", tag: "Doce de leite e flor de sal", description: "Massa de cacau 70% recheada com doce de leite argentino, finalizada com flor de sal. Servido em quadrados de 7 cm. Contém ovos, leite e glúten.", sizes: [{ label: "Unidade", price: 16 }, { label: "Caixa com 4", price: 58 }, { label: "Caixa com 9", price: 124 }] },
@@ -41,13 +71,24 @@ const DISHES: Dish[] = [
   { id: "bolo-recheado", name: "Bolo Recheado", category: "Bolos", summary: "Pão de ló úmido, ganache meio amargo e doce de leite entre as camadas.", tag: "Três camadas, dois recheios", description: "Três camadas de pão de ló de cacau, ganache meio amargo e doce de leite, coberto com ganache batido. Inteiro de 1,6 kg, serve cerca de 12 fatias. A versão de encomenda tem 2,5 kg e mensagem escrita à mão. Contém ovos, leite e glúten.", sizes: [{ label: "Inteiro · 1,6 kg", price: 112 }, { label: "Encomenda · 2,5 kg", price: 168 }] },
   { id: "bolo-especial", name: "Bolo Especial", category: "Especiais", summary: "Bolo de festa com ganache espelhado, frutas vermelhas e mensagem à mão.", tag: "Para a ocasião", description: "Bolo de festa em três andares de massa, recheio escolhido por você (ganache, doce de leite ou frutas vermelhas) e acabamento com ganache espelhado, frutas frescas e mensagem escrita à mão. Encomenda com 48 horas de antecedência. Contém ovos, leite e glúten.", sizes: [{ label: "Encomenda · 3 kg", price: 168 }, { label: "Encomenda · 4,5 kg", price: 240 }] },
 ];
+// Produtos que aparecem na seção "Cacau no ponto" (pelos ids acima).
 const FEATURED: string[] = ["brownie-tradicional", "bolo-recheado", "brownie-nutella"];
+// Abas de filtro do cardápio.
 const CATEGORIES: Array<"Tudo" | Category> = ["Tudo", "Brownies", "Bolos", "Especiais"];
+// Formata número como dinheiro: money(12) -> "R$ 12,00".
 const BRL = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 const money = (value: number) => BRL.format(value);
+// Busca um produto pelo id / um tamanho pelo índice (com valor padrão seguro).
 const dishById = (id: string): Dish => (DISHES.find((dish) => dish.id === id) ?? DISHES[0]) as Dish;
 const sizeOf = (dish: Dish, index: number): Size => (dish.sizes[index] ?? dish.sizes[0]) as Size;
 
+// ---------------------------------------------------------------------
+// 2. CARRINHO E PEDIDO
+// ---------------------------------------------------------------------
+// Monta o link do WhatsApp com o pedido escrito (itens, total, observações).
+// BACKEND: se quiserem salvar o pedido no PHP antes de abrir o WhatsApp,
+// enviem "lines" e "notes" para algo como POST /api/pedidos.php.
+// Recalculem o total no PHP, nunca confiem no total vindo do navegador.
 function buildOrderLink(lines: BasketLine[], notes: string) {
   const items = lines.map((line) => {
     const dish = dishById(line.dishId);
@@ -60,6 +101,7 @@ function buildOrderLink(lines: BasketLine[], notes: string) {
   return `${WHATSAPP}?text=${encodeURIComponent(text)}`;
 }
 
+// Ações da loja repassadas para as seções da página.
 type Shop = {
   count: number;
   openBasket: () => void;
@@ -67,6 +109,14 @@ type Shop = {
   addDish: (id: string, size?: number) => void;
 };
 
+// ---------------------------------------------------------------------
+// 3. A PÁGINA (Index)
+// ---------------------------------------------------------------------
+// Guarda o estado da loja:
+//  basket   -> itens do carrinho     notes  -> observações do cliente
+//  dialog   -> janela aberta         toast  -> aviso "X entrou na seleção"
+//  menuOpen -> menu do celular aberto
+// O carrinho vive só na memória do navegador: some ao recarregar a página.
 function Index() {
   const [basket, setBasket] = useState<BasketLine[]>([]);
   const [notes, setNotes] = useState("");
@@ -87,6 +137,7 @@ function Index() {
     setDialog(null);
     returnFocus.current?.focus();
   };
+  // Adiciona 1 unidade (soma se o mesmo produto+tamanho já estiver no carrinho).
   const addDish = (id: string, size = 0) => {
     setBasket((lines) => {
       const found = lines.find((line) => line.dishId === id && line.size === size);
@@ -95,6 +146,7 @@ function Index() {
     });
     setToast(dishById(id).name);
   };
+  // Botões + e - do carrinho; quantidade 0 remove a linha.
   const changeQty = (target: BasketLine, delta: number) => {
     setBasket((lines) => lines.flatMap((line) => (line === target ? (line.qty + delta > 0 ? [{ ...line, qty: line.qty + delta }] : []) : [line])));
   };
@@ -342,6 +394,7 @@ function Index() {
   );
 }
 
+// Barra fina no topo que mostra quanto da página já foi rolado.
 function ScrollProgress() {
   const [progress, setProgress] = useState(0);
   useEffect(() => {
@@ -362,6 +415,7 @@ function ScrollProgress() {
 
 const SCENE_PIN = 561;
 
+// Seção "Chocolate derretido": fica presa na tela enquanto anima com a rolagem.
 function ChocolateScene() {
   const wrapper = useRef<HTMLDivElement>(null);
   const [progress, setProgress] = useState(0);
@@ -391,6 +445,10 @@ function ChocolateScene() {
   );
 }
 
+// ---------------------------------------------------------------------
+// 4. SEÇÕES DA PÁGINA (na ordem em que aparecem)
+// ---------------------------------------------------------------------
+// Cabeçalho: logo, menu, botão do carrinho e botão "Encomendar".
 function ImportedHeader({ shop, menuOpen, setMenuOpen }: { shop: Shop; menuOpen: boolean; setMenuOpen: (open: boolean) => void }) {
   return (
     <header className={"bk-header items-center justify-between [&]:absolute [left:0px] [z-index:80] [translate:none] [rotate:none] [scale:none]"}>
@@ -435,6 +493,7 @@ function ImportedHeader({ shop, menuOpen, setMenuOpen }: { shop: Shop; menuOpen:
   );
 }
 
+// Topo da página (foto grande e título principal).
 function ImportedSectionBrownieBomFeitoComcalma() {
   return (
     <section className={"bk-hero bk-in-view [&]:relative [overflow:hidden] [scroll-margin-top:85px] [width:100%]"} id="inicio" aria-labelledby="bk-title">
@@ -484,6 +543,7 @@ function ImportedSectionBrownieBomFeitoComcalma() {
   );
 }
 
+// Cardápio: abas de filtro + cartões de produto (lê a lista DISHES).
 function ImportedSectionTemCoisaBoasaindoDo({ shop }: { shop: Shop }) {
   const [filter, setFilter] = useState<"Tudo" | Category>("Tudo");
   const visible = DISHES.filter((dish) => filter === "Tudo" || dish.category === filter);
@@ -561,6 +621,7 @@ function ImportedSectionTemCoisaBoasaindoDo({ shop }: { shop: Shop }) {
   );
 }
 
+// Destaque "Cacau no ponto" com seletor 01/02/03 (lê FEATURED).
 function ImportedSectionCacauNoPontoPressa({ shop }: { shop: Shop }) {
   const [featured, setFeatured] = useState<string>("brownie-tradicional");
   const dish = dishById(featured);
@@ -606,6 +667,7 @@ function ImportedSectionCacauNoPontoPressa({ shop }: { shop: Shop }) {
   );
 }
 
+// Conteúdo visual da seção "Chocolate derretido".
 function ImportedSectionChocolatederretido({ progress, pinned }: { progress: number; pinned: boolean }) {
   const eased = 1 - (1 - progress) ** 2;
   const rest = 1 - eased;
@@ -636,6 +698,7 @@ function ImportedSectionChocolatederretido({ progress, pinned }: { progress: num
   );
 }
 
+// Seção da história da confeitaria.
 function ImportedSectionUmPoucoDeCacau() {
   return (
     <section className="bk-story bk-section items-center [scroll-margin-top:85px] [@media(max-width:680px)]:flex-col" id="casa" aria-labelledby="bk-story-title">
@@ -658,6 +721,7 @@ function ImportedSectionUmPoucoDeCacau() {
   );
 }
 
+// Seção de visita / chamada para pedir pelo WhatsApp.
 function ImportedSectionTemSempreumBoloEsperando({ shop }: { shop: Shop }) {
   return (
     <section className={"bk-visit [&]:relative [overflow:hidden] [scroll-margin-top:85px] [@media(max-width:680px)]:flex-col"} id="encomenda" aria-labelledby="bk-visit-title">
@@ -682,6 +746,7 @@ function ImportedSectionTemSempreumBoloEsperando({ shop }: { shop: Shop }) {
   );
 }
 
+// Perguntas frequentes.
 function ImportedSectionSemDVidaCom() {
   return (
     <section className="bk-faq bk-section [scroll-margin-top:85px]" id="duvidas" aria-labelledby="bk-faq-title">
@@ -711,6 +776,7 @@ function ImportedSectionSemDVidaCom() {
   );
 }
 
+// Rodapé.
 function ImportedFooter() {
   return (
     <footer className="bk-footer">
@@ -742,6 +808,10 @@ function ImportedFooter() {
   );
 }
 
+// ---------------------------------------------------------------------
+// 5. ABERTURA ANIMADA (só visual, não precisa de backend)
+// ---------------------------------------------------------------------
+// Toca uma vez por visita. Para ver de novo: abra o site com ?abertura=1
 const INTRO_KEY = "doce-forno-abertura";
 const HERO_PHOTO = "/site-assets/6c6b089f6f2e8732.webp";
 const SPARKS: Array<[number, number]> = [[15, 35], [24, 65], [37, 20], [58, 16], [74, 34], [85, 56], [65, 76], [32, 78]];
@@ -878,6 +948,9 @@ function OpeningIntro({ assetsReady, onFinish }: { assetsReady: boolean; onFinis
 
 // Entrance, scroll-reveal and hover motion ported from the original site.
 // The "Chocolate derretido" pin and the scroll progress bar are driven by their own components.
+// ---------------------------------------------------------------------
+// 6. ANIMAÇÕES DE ROLAGEM (só visual, não precisa de backend)
+// ---------------------------------------------------------------------
 function useSiteMotion(rootRef: RefObject<HTMLDivElement | null>, enabled: boolean) {
   useEffect(() => {
     const root = rootRef.current;
