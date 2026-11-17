@@ -5380,4 +5380,4 @@ body {
 @media (prefers-reduced-motion: reduce) { .bk-opening { display: none; } }
 /* Sliding category pill */
 .bk-categories { isolation: isolate; }
-.bk-categories > .bk-category-pill { inset: auto; transition: transform 0.45s cubic-bezier(0.3, 1.25, 0.4, 1), width 0.45s cubic-bezier(0.3, 1.25, 0.4, 1); }
+.bk-categories > .bk-category-pill { position: absolute; z-index: -1; inset: auto; border-radius: 30px; background: var(--bk-ink); pointer-events: none; transition: transform 0.45s cubic-bezier(0.3, 1.25, 0.4, 1), width 0.45s cubic-bezier(0.3, 1.25, 0.4, 1); }
